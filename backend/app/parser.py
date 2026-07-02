@@ -30,6 +30,7 @@ class ParsedSource:
     schema_name: Optional[str]
     database: Optional[str]
     freshness: Optional[dict] = None
+    columns: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -78,11 +79,16 @@ def parse_sources(manifest: dict) -> dict[str, ParsedSource]:
         name = ".".join(
             p for p in (node.get("source_name"), node.get("name")) if p
         ) or node.get("name", uid.split(".")[-1])
+        columns = [
+            {"name": (meta or {}).get("name", cname), "data_type": (meta or {}).get("data_type")}
+            for cname, meta in (node.get("columns") or {}).items()
+        ]
         sources[uid] = ParsedSource(
             unique_id=uid,
             name=name,
             schema_name=node.get("schema"),
             database=node.get("database"),
+            columns=columns,
         )
     return sources
 

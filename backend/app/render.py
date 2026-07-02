@@ -315,6 +315,10 @@ const GRAPH = __GRAPH_JSON__;
   function fmtTime(iso){ if(!iso) return ''; const d=new Date(iso); if(isNaN(d.getTime())) return '';
     const p=x=>String(x).padStart(2,'0');
     return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()); }
+  function colsHtml(n){ if(!n.columns || !n.columns.length) return '';
+    let h='<div class="cols-h"><span>Columns</span><span>'+n.columns.length+'</span></div>';
+    n.columns.forEach(c=>{ h+='<div class="col-row"><span class="cname">'+escapeHtml(c.name)+'</span><span class="ctype">'+escapeHtml(c.data_type||'')+'</span></div>'; });
+    return h; }
   function select(id){
     selId=id; const n=byId[id];
     Object.values(nodeEls).forEach(e=>e.classList.remove('sel'));
@@ -329,6 +333,7 @@ const GRAPH = __GRAPH_JSON__;
     if(n.resource_type==='source'){
       h+=`<div class="block ${n.freshness_status==='pass'?'':'block-cas'}"><div class="block-lbl" style="color:#e8b34a">Freshness</div>`+
          `<div style="font-size:11px;color:#c3c6cd">${(n.freshness_status||'unknown')} · loaded ~${Math.round((n.freshness_age_seconds||0)/3600)}h ago</div></div>`;
+      h+=colsHtml(n);
     } else {
       const testFailed = (n.test_status==='fail'||n.test_status==='error');
       const isSuccess = n.status!=='error' && n.failure_class!=='casualty' && !testFailed;
@@ -342,10 +347,7 @@ const GRAPH = __GRAPH_JSON__;
            '<div class="tile"><div class="k">Materialization</div><div class="v">'+(n.materialization||'—')+'</div></div>'+
            '<div class="tile"><div class="k">Exec time</div><div class="v">'+(n.execution_time!=null?n.execution_time.toFixed(2)+'s':'—')+'</div></div>'+
            '</div>';
-        if(n.columns && n.columns.length){
-          h+='<div class="cols-h"><span>Columns</span><span>'+n.columns.length+'</span></div>';
-          n.columns.forEach(c=>{ h+='<div class="col-row"><span class="cname">'+escapeHtml(c.name)+'</span><span class="ctype">'+escapeHtml(c.data_type||'')+'</span></div>'; });
-        }
+        h+=colsHtml(n);
       } else {
         if(n.status==='error' && n.message){
           h+=`<div class="block block-err"><div class="block-lbl" style="color:#f2555a">Compilation error</div><pre>${escapeHtml(n.message)}</pre></div>`;
@@ -362,6 +364,7 @@ const GRAPH = __GRAPH_JSON__;
              `<div style="font-size:11px;color:#c3c6cd">This model built successfully, but a data test on it failed`+
              (gated?` and gates ${gated} downstream model(s)`:` (nothing downstream depends on it)`)+`.</div></div>`;
         }
+        h+=colsHtml(n);
       }
       if(n.tests && n.tests.length){
         h+='<div class="block" style="border:1px solid rgba(255,255,255,0.08)"><div class="block-lbl" style="color:#9aa0ab">Tests</div>';
@@ -370,9 +373,8 @@ const GRAPH = __GRAPH_JSON__;
         h+='</div>';
       }
     }
-    const hasFailure = n.resource_type==='source'
-      ? (n.freshness_status==='warn'||n.freshness_status==='error')
-      : (n.status==='error'||n.failure_class==='casualty'||n.test_status==='fail'||n.test_status==='error');
+    const hasFailure = n.resource_type!=='source'
+      && (n.status==='error'||n.test_status==='fail'||n.test_status==='error');
     if(hasFailure){
       h+='<div class="ask"><div class="ask-lbl">✦ Ask Claude · this '+(n.resource_type==='source'?'source':'node')+'</div>'+
          '<div class="ask-box"><input placeholder="Ask about this failure…" disabled><span style="color:#ff9d7a">↑</span></div></div>';

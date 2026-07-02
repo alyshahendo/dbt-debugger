@@ -115,6 +115,7 @@ def build_graph(artifacts: ParsedArtifacts) -> dict:
                 "lane": _LANE_SOURCES,
                 "freshness_status": fresh.get("status"),
                 "freshness_age_seconds": fresh.get("age_seconds"),
+                "columns": src.columns,
             }
         )
 
