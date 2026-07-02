@@ -316,9 +316,13 @@ const GRAPH = __GRAPH_JSON__;
         h+='</div>';
       }
     }
-    h+='<div class="ask"><div class="ask-lbl">✦ Ask Claude · this '+(n.resource_type==='source'?'source':'node')+'</div>'+
-       '<div class="ask-box"><input placeholder="Ask about this failure…" disabled><span style="color:#ff9d7a">↑</span></div>'+
-       '<div style="font-size:9px;color:#5a5e68;margin-top:6px">Live analysis + fix arrives when run inside the /dbt-debug skill.</div></div>';
+    const hasFailure = n.resource_type==='source'
+      ? (n.freshness_status==='warn'||n.freshness_status==='error')
+      : (n.status==='error'||n.failure_class==='casualty'||n.test_status==='fail'||n.test_status==='error');
+    if(hasFailure){
+      h+='<div class="ask"><div class="ask-lbl">✦ Ask Claude · this '+(n.resource_type==='source'?'source':'node')+'</div>'+
+         '<div class="ask-box"><input placeholder="Ask about this failure…" disabled><span style="color:#ff9d7a">↑</span></div></div>';
+    }
     drawer.innerHTML=h;
   }
   function panToNode(id){
