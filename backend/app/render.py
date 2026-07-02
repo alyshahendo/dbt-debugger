@@ -82,6 +82,7 @@ _TEMPLATE = r"""<!DOCTYPE html>
   .block{ border-radius:7px; padding:10px; margin-top:12px; }
   .block-err{ background:rgba(242,85,90,0.10); border:1px solid rgba(242,85,90,0.28); }
   .block-cas{ background:rgba(232,146,58,0.10); border:1px solid rgba(232,146,58,0.35); }
+  .block-root{ background:rgba(255,157,122,0.10); border:1px solid rgba(255,157,122,0.34); }
   .block-lbl{ font-size:10px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
   pre{ font-family:'JetBrains Mono',monospace; font-size:10px; white-space:pre-wrap; margin:0; color:#f0c8c9; }
   .ask{ margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.07); }
@@ -272,6 +273,13 @@ const GRAPH = __GRAPH_JSON__;
     .map(c=>`<span class="chip" style="font-size:10px"><span class="dot" style="background:${c[0]}"></span><span>${c[1]}</span></span>`).join('');
 
   const side=document.getElementById('side');
+  const humanTest = t => ({not_null:'not null',unique:'unique',accepted_values:'accepted values',relationships:'relationships'}[t] || (t||'test').replace(/_/g,' '));
+  function testLabel(t, modelName){
+    let nm=t.name||''; const pre=(t.test_type||'')+'_'+modelName+'_';
+    let col = nm.indexOf(pre)===0 ? nm.slice(pre.length) : nm;
+    col = col.replace(/__.*$/,'');
+    return humanTest(t.test_type)+(col&&col!==nm?' · '+col:'');
+  }
   const fmtItem = (id,nm,sub,cls) =>
     `<div class="fail-item ${cls||''}" onclick="__sel('${id}')"><div class="nm">${nm}</div><div class="sub">${sub}</div></div>`;
   let sideHtml='';
@@ -286,7 +294,7 @@ const GRAPH = __GRAPH_JSON__;
     (n.tests||[]).filter(t=>t.status==='fail'||t.status==='error').map(t=>({node:n,test:t})));
   if(failingTests.length){
     sideHtml+='<div class="side-h" style="margin-top:14px">Failed tests</div>';
-    failingTests.forEach(f=> sideHtml+=fmtItem(f.node.id, f.test.name, f.node.name+' · '+(f.test.failures||0)+' rows'));
+    failingTests.forEach(f=> sideHtml+=fmtItem(f.node.id, testLabel(f.test, f.node.name), f.node.name+' · '+(f.test.failures||0)+' rows'));
   }
 
   const stale = GRAPH.nodes.filter(n=>n.resource_type==='source'&&(n.freshness_status==='warn'||n.freshness_status==='error'));
@@ -353,7 +361,7 @@ const GRAPH = __GRAPH_JSON__;
           h+=`<div class="block block-err"><div class="block-lbl" style="color:#f2555a">Compilation error</div><pre>${escapeHtml(n.message)}</pre></div>`;
         }
         if(n.status==='error'){
-          h+=`<div class="block block-err"><div class="block-lbl" style="color:#ff9d7a">Root cause <span class="badge" style="background:rgba(62,207,142,0.12);color:#3ecf8e">computed</span></div>`+
+          h+=`<div class="block block-root"><div class="block-lbl" style="color:#ff9d7a">Root cause <span class="badge" style="background:rgba(255,157,122,0.16);color:#ff9d7a">computed</span></div>`+
              `<div style="font-size:11px;color:#c3c6cd">This model ran and errored — its parents were fine, so it's the origin of the failure. Skipped ${blastOf[n.id]||0} downstream model(s).</div></div>`;
         } else if(n.failure_class==='casualty'){
           h+=`<div class="block block-cas"><div class="block-lbl" style="color:#f0a24e">Casualty</div>`+
@@ -369,7 +377,7 @@ const GRAPH = __GRAPH_JSON__;
       if(n.tests && n.tests.length){
         h+='<div class="block" style="border:1px solid rgba(255,255,255,0.08)"><div class="block-lbl" style="color:#9aa0ab">Tests</div>';
         n.tests.forEach(t=>{ const b=t.status==='fail'||t.status==='error'?'b-fail':t.status==='warn'?'b-warn':'b-pass';
-          h+=`<div class="tests-row"><span class="mono tname">${t.name}</span><span class="badge ${b}">${t.status}${t.failures?(' · '+t.failures):''}</span></div>`; });
+          h+=`<div class="tests-row"><span class="tname">${testLabel(t, n.name)}</span><span class="badge ${b}">${t.status}${t.failures?(' · '+t.failures):''}</span></div>`; });
         h+='</div>';
       }
     }
