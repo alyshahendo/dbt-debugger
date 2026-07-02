@@ -112,7 +112,7 @@ _TEMPLATE = r"""<!DOCTYPE html>
     <div id="canvaswrap">
       <div class="toolbar">
         <div class="tbtn" id="focusBtn">◂ Focus failure <span id="focusIdx"></span> ▸</div>
-        <div class="tbtn" id="pathBtn">◯ Failure path only</div>
+        <div class="tbtn" id="pathBtn">◯ Failure paths only</div>
         <div class="tbtn zbtn" id="zoomOut">−</div>
         <div class="tbtn zbtn" id="zoomReset">100%</div>
         <div class="tbtn zbtn" id="zoomIn">+</div>
@@ -238,18 +238,19 @@ const GRAPH = __GRAPH_JSON__;
   document.getElementById('hsub').textContent =
     (GRAPH.command||'run')+' · '+s.models+' models · '+s.sources+' sources';
   const chips=[];
+  const plural=(n,w)=>n+' '+w+(n===1?'':'s');
   const erroredCount = GRAPH.nodes.filter(n=>n.resource_type==='model' && n.status==='error').length;
   if(!isTestRun){
-    if(erroredCount) chips.push(['#f2555a', erroredCount+' failed']);
-    const cas=s.by_failure_class.casualty||0; if(cas) chips.push(['#f0a24e', cas+' skipped']);
+    if(erroredCount) chips.push(['#f2555a', plural(erroredCount,'model')+' failed']);
+    const cas=s.by_failure_class.casualty||0; if(cas) chips.push(['#f0a24e', plural(cas,'model')+' skipped']);
   }
-  if(s.failing_tests) chips.push(['#f2555a', s.failing_tests+' test'+(s.failing_tests>1?'s':'')+' failed']);
-  if(s.stale_sources) chips.push(['#e8b34a', s.stale_sources+' source stale']);
-  const passed = isTestRun ? '' : (s.by_failure_class.ok||0)+' passed';
+  if(s.failing_tests) chips.push(['#f2555a', plural(s.failing_tests,'test')+' failed']);
+  if(s.stale_sources) chips.push(['#e8b34a', plural(s.stale_sources,'source')+' stale']);
+  const passed = isTestRun ? '' : plural(s.by_failure_class.ok||0,'model')+' passed';
   chips.push(['#3ecf8e', passed || 'ok']);
   document.getElementById('chips').innerHTML = chips.map(c=>`<span class="chip"><span class="dot" style="background:${c[0]}"></span><span style="color:${c[0]}">${c[1]}</span></span>`).join('');
   document.getElementById('legend').innerHTML =
-    [['#3ecf8e','pass'],['#f2555a',isTestRun?'test fail':'root cause'],['#f0a24e',isTestRun?'warn':'skipped'],['#e8b34a','stale']]
+    [['#3ecf8e',isTestRun?'test passed':'model passed'],['#f2555a',isTestRun?'test failed':'model failed'],['#f0a24e',isTestRun?'test warning':'model skipped'],['#e8b34a','stale source']]
     .map(c=>`<span class="chip" style="font-size:10px"><span class="dot" style="background:${c[0]}"></span><span>${c[1]}</span></span>`).join('');
 
   const side=document.getElementById('side');
@@ -259,14 +260,14 @@ const GRAPH = __GRAPH_JSON__;
 
   const modelFails = GRAPH.nodes.filter(n=>n.resource_type==='model' && n.status==='error');
   if(modelFails.length){
-    sideHtml+='<div class="side-h">Model failures · this run</div>';
+    sideHtml+='<div class="side-h">Model failures</div>';
     modelFails.forEach(n=> sideHtml+=fmtItem(n.id, n.name, 'errored · skipped '+(blastOf[n.id]||0)+' downstream'));
   }
 
   const failingTests = GRAPH.nodes.flatMap(n=>
     (n.tests||[]).filter(t=>t.status==='fail'||t.status==='error').map(t=>({node:n,test:t})));
   if(failingTests.length){
-    sideHtml+='<div class="side-h" style="margin-top:14px">Failing tests</div>';
+    sideHtml+='<div class="side-h" style="margin-top:14px">Failed tests</div>';
     failingTests.forEach(f=> sideHtml+=fmtItem(f.node.id, f.test.name, f.node.name+' · '+(f.test.failures||0)+' rows'));
   }
 
@@ -276,7 +277,7 @@ const GRAPH = __GRAPH_JSON__;
     stale.forEach(n=> sideHtml+=fmtItem(n.id, n.name, n.freshness_status+' · '+Math.round((n.freshness_age_seconds||0)/3600)+'h old', 'warnish'));
   }
 
-  if(!sideHtml) sideHtml='<div class="side-h">This run</div><div class="hsub">No failures — all green.</div>';
+  if(!sideHtml) sideHtml='<div class="hsub">No failures — all green.</div>';
   side.innerHTML=sideHtml;
 
   const drawer=document.getElementById('drawer');
@@ -305,7 +306,7 @@ const GRAPH = __GRAPH_JSON__;
            `<div style="font-size:11px;color:#c3c6cd">Skipped because <span class="mono">${(byId[n.blamed_root_cause]||{}).name||n.blamed_root_cause}</span> upstream failed.</div></div>`;
       } else if(testFailed){
         const gated = blastOf[n.id]||0;
-        h+=`<div class="block block-err"><div class="block-lbl" style="color:#f2555a">Failing test</div>`+
+        h+=`<div class="block block-err"><div class="block-lbl" style="color:#f2555a">Failed test</div>`+
            `<div style="font-size:11px;color:#c3c6cd">This model built successfully, but a data test on it failed`+
            (gated?` and gates ${gated} downstream model(s)`:` (nothing downstream depends on it)`)+`.</div></div>`;
       }
@@ -328,7 +329,7 @@ const GRAPH = __GRAPH_JSON__;
   const pathBtn=document.getElementById('pathBtn'); let pathOn=false;
   pathBtn.onclick=()=>{
     pathOn=!pathOn; pathBtn.classList.toggle('on', pathOn);
-    pathBtn.innerHTML=(pathOn?'◉':'◯')+' Failure path only';
+    pathBtn.innerHTML=(pathOn?'◉':'◯')+' Failure paths only';
     hidden=new Set();
     if(pathOn){ GRAPH.nodes.forEach(n=>{ if(!cascade.has(n.id)){
         const keep=(childrenOf[n.id]||[]).some(c=>cascade.has(c)) && n.resource_type==='source';
