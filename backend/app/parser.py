@@ -20,6 +20,7 @@ class ParsedModel:
     depends_on: list[str]
     source_deps: list[str] = field(default_factory=list)
     path: Optional[str] = None
+    columns: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -48,6 +49,7 @@ class ParsedResult:
     execution_time: Optional[float] = None
     message: Optional[str] = None
     failures: Optional[int] = None
+    completed_at: Optional[str] = None
 
 
 @dataclass
@@ -96,6 +98,10 @@ def parse_manifest(manifest: dict) -> tuple[dict[str, ParsedModel], dict[str, Pa
         dep_nodes = node.get("depends_on", {}).get("nodes", [])
         depends = [d for d in dep_nodes if d in model_ids]
         src_deps = [d for d in dep_nodes if d in source_ids]
+        columns = [
+            {"name": (meta or {}).get("name", cname), "data_type": (meta or {}).get("data_type")}
+            for cname, meta in (node.get("columns") or {}).items()
+        ]
         models[uid] = ParsedModel(
             unique_id=uid,
             name=node.get("name", uid.split(".")[-1]),
@@ -105,6 +111,7 @@ def parse_manifest(manifest: dict) -> tuple[dict[str, ParsedModel], dict[str, Pa
             depends_on=depends,
             source_deps=src_deps,
             path=node.get("original_file_path") or node.get("path"),
+            columns=columns,
         )
 
     tests: dict[str, ParsedTest] = {}
@@ -132,12 +139,18 @@ def parse_run_results(run_results: dict) -> tuple[Optional[str], dict[str, Parse
         uid = r.get("unique_id")
         if not uid:
             continue
+        timing = r.get("timing") or []
+        completed_at = next(
+            (t.get("completed_at") for t in timing if t.get("name") == "execute" and t.get("completed_at")),
+            timing[-1].get("completed_at") if timing else None,
+        )
         results[uid] = ParsedResult(
             unique_id=uid,
             status=r.get("status", ""),
             execution_time=r.get("execution_time"),
             message=r.get("message"),
             failures=r.get("failures"),
+            completed_at=completed_at,
         )
     return command, results
 

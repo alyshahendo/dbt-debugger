@@ -136,7 +136,9 @@ def build_graph(artifacts: ParsedArtifacts) -> dict:
                 "failure_class": c.failure_class,
                 "blamed_root_cause": c.blamed_root_cause_unique_id,
                 "execution_time": res.execution_time if res else None,
+                "completed_at": res.completed_at if res else None,
                 "message": res.message if res else None,
+                "columns": model.columns,
                 "tests": model_tests,
                 "test_status": _rollup_test_status(model_tests),
             }

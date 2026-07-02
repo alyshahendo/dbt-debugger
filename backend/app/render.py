@@ -96,6 +96,25 @@ _TEMPLATE = r"""<!DOCTYPE html>
   .b-fail{ background:rgba(242,85,90,0.2); color:#f2555a; }
   .b-warn{ background:rgba(232,179,74,0.2); color:#e8b34a; }
   .b-pass{ background:rgba(62,207,142,0.18); color:#3ecf8e; }
+  .b-neutral{ background:rgba(255,255,255,0.08); color:#9aa0ab; }
+  .d-head{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .d-head .x{ margin-left:auto; float:none; }
+  .d-type{ font-size:11px; color:#6b6f7a; }
+  .badge.b-lg{ font-size:10px; font-weight:700; letter-spacing:.06em; padding:4px 9px; border-radius:6px; }
+  .block-ok{ background:rgba(62,207,142,0.09); border:1px solid rgba(62,207,142,0.28); }
+  .built{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .built .when{ font-size:11px; color:#c3c6cd; margin-top:2px; }
+  .built .ts{ font-family:'JetBrains Mono',monospace; font-size:10px; color:#5a5e68; white-space:nowrap; }
+  .tiles{ display:flex; gap:10px; margin-top:12px; }
+  .tile{ flex:1; border:1px solid rgba(255,255,255,0.08); border-radius:9px; padding:10px 11px; background:rgba(255,255,255,0.02); }
+  .tile .k{ font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:#6b6f7a; }
+  .tile .v{ font-family:'JetBrains Mono',monospace; font-size:14px; margin-top:6px; color:#e6e7ea; }
+  .cols-h{ display:flex; justify-content:space-between; font-size:10px; text-transform:uppercase;
+    letter-spacing:.06em; color:#6b6f7a; margin:18px 0 2px; }
+  .col-row{ display:flex; justify-content:space-between; gap:8px; padding:9px 4px;
+    border-top:1px solid rgba(255,255,255,0.06); font-size:12px; }
+  .col-row .cname{ font-family:'JetBrains Mono',monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .col-row .ctype{ font-family:'JetBrains Mono',monospace; color:#8aa6e0; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -281,12 +300,30 @@ const GRAPH = __GRAPH_JSON__;
 
   const drawer=document.getElementById('drawer');
   let selId=null;
+  function statusBadge(n){
+    if(n.resource_type==='source')
+      return (n.freshness_status==='warn'||n.freshness_status==='error') ? ['STALE','b-warn'] : ['SOURCE','b-neutral'];
+    if(n.status==='error') return ['FAILED','b-fail'];
+    if(n.failure_class==='casualty') return ['SKIPPED','b-warn'];
+    if(n.test_status==='fail'||n.test_status==='error') return ['TEST FAILED','b-fail'];
+    return ['SUCCESS','b-pass'];
+  }
+  function relTime(iso){ if(!iso) return ''; const t=Date.parse(iso); if(isNaN(t)) return '';
+    const s=(Date.now()-t)/1000; if(s<60) return 'just now';
+    if(s<3600) return Math.floor(s/60)+'m ago'; if(s<86400) return Math.floor(s/3600)+'h ago';
+    return Math.floor(s/86400)+'d ago'; }
+  function fmtTime(iso){ if(!iso) return ''; const d=new Date(iso); if(isNaN(d.getTime())) return '';
+    const p=x=>String(x).padStart(2,'0');
+    return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()); }
   function select(id){
     selId=id; const n=byId[id];
     Object.values(nodeEls).forEach(e=>e.classList.remove('sel'));
     if(nodeEls[id]) nodeEls[id].classList.add('sel');
     drawer.classList.add('open');
-    let h='<span class="x" onclick="__close()">×</span>';
+    const [bLabel,bCls] = statusBadge(n);
+    const typeLabel = n.resource_type==='source' ? 'Source' : ('Model'+(n.materialization?' · '+n.materialization:''));
+    let h='<div class="d-head"><span class="badge b-lg '+bCls+'">'+bLabel+'</span>'+
+          '<span class="d-type">'+typeLabel+'</span><span class="x" onclick="__close()">×</span></div>';
     h+=`<div class="d-title">${n.name}</div>`;
     if(n.path) h+=`<div class="d-path">${n.path}</div>`;
     if(n.resource_type==='source'){
@@ -294,20 +331,37 @@ const GRAPH = __GRAPH_JSON__;
          `<div style="font-size:11px;color:#c3c6cd">${(n.freshness_status||'unknown')} · loaded ~${Math.round((n.freshness_age_seconds||0)/3600)}h ago</div></div>`;
     } else {
       const testFailed = (n.test_status==='fail'||n.test_status==='error');
-      if(n.status==='error' && n.message){
-        h+=`<div class="block block-err"><div class="block-lbl" style="color:#f2555a">Compilation error</div><pre>${escapeHtml(n.message)}</pre></div>`;
-      }
-      if(n.status==='error'){
-        h+=`<div class="block block-err"><div class="block-lbl" style="color:#ff9d7a">Root cause <span class="badge" style="background:rgba(62,207,142,0.12);color:#3ecf8e">computed</span></div>`+
-           `<div style="font-size:11px;color:#c3c6cd">This model ran and errored — its parents were fine, so it's the origin of the failure. Skipped ${blastOf[n.id]||0} downstream model(s).</div></div>`;
-      } else if(n.failure_class==='casualty'){
-        h+=`<div class="block block-cas"><div class="block-lbl" style="color:#f0a24e">Casualty</div>`+
-           `<div style="font-size:11px;color:#c3c6cd">Skipped because <span class="mono">${(byId[n.blamed_root_cause]||{}).name||n.blamed_root_cause}</span> upstream failed.</div></div>`;
-      } else if(testFailed){
-        const gated = blastOf[n.id]||0;
-        h+=`<div class="block block-err"><div class="block-lbl" style="color:#f2555a">Failed test</div>`+
-           `<div style="font-size:11px;color:#c3c6cd">This model built successfully, but a data test on it failed`+
-           (gated?` and gates ${gated} downstream model(s)`:` (nothing downstream depends on it)`)+`.</div></div>`;
+      const isSuccess = n.status!=='error' && n.failure_class!=='casualty' && !testFailed;
+      if(isSuccess){
+        const rel=relTime(n.completed_at), ts=fmtTime(n.completed_at);
+        h+='<div class="block block-ok"><div class="built">'+
+           '<div><div class="block-lbl" style="color:#3ecf8e">● Last built</div>'+
+           (rel?'<div class="when">'+rel+'</div>':'')+'</div>'+
+           (ts?'<div class="ts">'+ts+'</div>':'')+'</div></div>';
+        h+='<div class="tiles">'+
+           '<div class="tile"><div class="k">Materialization</div><div class="v">'+(n.materialization||'—')+'</div></div>'+
+           '<div class="tile"><div class="k">Exec time</div><div class="v">'+(n.execution_time!=null?n.execution_time.toFixed(2)+'s':'—')+'</div></div>'+
+           '</div>';
+        if(n.columns && n.columns.length){
+          h+='<div class="cols-h"><span>Columns</span><span>'+n.columns.length+'</span></div>';
+          n.columns.forEach(c=>{ h+='<div class="col-row"><span class="cname">'+escapeHtml(c.name)+'</span><span class="ctype">'+escapeHtml(c.data_type||'')+'</span></div>'; });
+        }
+      } else {
+        if(n.status==='error' && n.message){
+          h+=`<div class="block block-err"><div class="block-lbl" style="color:#f2555a">Compilation error</div><pre>${escapeHtml(n.message)}</pre></div>`;
+        }
+        if(n.status==='error'){
+          h+=`<div class="block block-err"><div class="block-lbl" style="color:#ff9d7a">Root cause <span class="badge" style="background:rgba(62,207,142,0.12);color:#3ecf8e">computed</span></div>`+
+             `<div style="font-size:11px;color:#c3c6cd">This model ran and errored — its parents were fine, so it's the origin of the failure. Skipped ${blastOf[n.id]||0} downstream model(s).</div></div>`;
+        } else if(n.failure_class==='casualty'){
+          h+=`<div class="block block-cas"><div class="block-lbl" style="color:#f0a24e">Casualty</div>`+
+             `<div style="font-size:11px;color:#c3c6cd">Skipped because <span class="mono">${(byId[n.blamed_root_cause]||{}).name||n.blamed_root_cause}</span> upstream failed.</div></div>`;
+        } else if(testFailed){
+          const gated = blastOf[n.id]||0;
+          h+=`<div class="block block-err"><div class="block-lbl" style="color:#f2555a">Failed test</div>`+
+             `<div style="font-size:11px;color:#c3c6cd">This model built successfully, but a data test on it failed`+
+             (gated?` and gates ${gated} downstream model(s)`:` (nothing downstream depends on it)`)+`.</div></div>`;
+        }
       }
       if(n.tests && n.tests.length){
         h+='<div class="block" style="border:1px solid rgba(255,255,255,0.08)"><div class="block-lbl" style="color:#9aa0ab">Tests</div>';

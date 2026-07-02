@@ -11,119 +11,347 @@
       "unique_id": "model.jaffle_shop.stg_customers",
       "status": "success",
       "execution_time": 0.98,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.stg_orders",
       "status": "success",
       "execution_time": 0.59,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.stg_payments",
       "status": "error",
       "execution_time": 0.85,
-      "message": "Database Error in model stg_payments\n  column \"payment_method\" does not exist in source raw.payments\n  LINE 7:   payment_method,"
+      "message": "Database Error in model stg_payments\n  column \"payment_method\" does not exist in source raw.payments\n  LINE 7:   payment_method,",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.stg_products",
       "status": "success",
       "execution_time": 0.85,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.stg_sessions",
       "status": "success",
       "execution_time": 0.85,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.int_orders_joined",
       "status": "success",
       "execution_time": 0.59,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.int_payments_enriched",
       "status": "skipped",
       "execution_time": 0.0,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.int_customer_sessions",
       "status": "success",
       "execution_time": 0.2,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.dim_customers",
       "status": "success",
       "execution_time": 0.98,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.dim_products",
       "status": "success",
       "execution_time": 0.85,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.fct_orders",
       "status": "skipped",
       "execution_time": 0.0,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.fct_payments",
       "status": "skipped",
       "execution_time": 0.0,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.fct_sessions",
       "status": "success",
       "execution_time": 0.85,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.fct_revenue_daily",
       "status": "skipped",
       "execution_time": 0.0,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "model.jaffle_shop.dim_customer_ltv",
       "status": "success",
       "execution_time": 0.46,
-      "message": null
+      "message": null,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "test.jaffle_shop.not_null_stg_customers_customer_id",
       "status": "pass",
       "execution_time": 0.05,
       "message": null,
-      "failures": 0
+      "failures": 0,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "test.jaffle_shop.unique_dim_customers_customer_id",
       "status": "pass",
       "execution_time": 0.05,
       "message": null,
-      "failures": 0
+      "failures": 0,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "test.jaffle_shop.not_null_dim_products_product_id",
       "status": "fail",
       "execution_time": 0.05,
       "message": null,
-      "failures": 7
+      "failures": 7,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     },
     {
       "unique_id": "test.jaffle_shop.accepted_values_stg_products_category",
       "status": "warn",
       "execution_time": 0.05,
       "message": null,
-      "failures": 4
+      "failures": 4,
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:07.660000+00:00"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-07-01T14:32:07.660000+00:00",
+          "completed_at": "2026-07-01T14:32:08.000000+00:00"
+        }
+      ]
     }
   ]
 }
