@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "invocation_id": "demo-fresh-0001"
+  },
+  "results": [
+    {
+      "unique_id": "source.jaffle_shop.raw.customers",
+      "status": "pass",
+      "max_loaded_at": "2026-06-30T17:00:00Z",
+      "snapshotted_at": "2026-06-30T20:00:00Z",
+      "age": 10800,
+      "criteria": {
+        "warn_after": {
+          "count": 24,
+          "period": "hour"
+        },
+        "error_after": {
+          "count": 48,
+          "period": "hour"
+        }
+      }
+    },
+    {
+      "unique_id": "source.jaffle_shop.raw.orders",
+      "status": "pass",
+      "max_loaded_at": "2026-06-30T17:00:00Z",
+      "snapshotted_at": "2026-06-30T20:00:00Z",
+      "age": 10800,
+      "criteria": {
+        "warn_after": {
+          "count": 24,
+          "period": "hour"
+        },
+        "error_after": {
+          "count": 48,
+          "period": "hour"
+        }
+      }
+    },
+    {
+      "unique_id": "source.jaffle_shop.raw.payments",
+      "status": "warn",
+      "max_loaded_at": "2026-06-29T18:00:00Z",
+      "snapshotted_at": "2026-06-30T20:00:00Z",
+      "age": 93600,
+      "criteria": {
+        "warn_after": {
+          "count": 24,
+          "period": "hour"
+        },
+        "error_after": {
+          "count": 48,
+          "period": "hour"
+        }
+      }
+    },
+    {
+      "unique_id": "source.jaffle_shop.raw.products",
+      "status": "pass",
+      "max_loaded_at": "2026-06-30T17:00:00Z",
+      "snapshotted_at": "2026-06-30T20:00:00Z",
+      "age": 10800,
+      "criteria": {
+        "warn_after": {
+          "count": 24,
+          "period": "hour"
+        },
+        "error_after": {
+          "count": 48,
+          "period": "hour"
+        }
+      }
+    },
+    {
+      "unique_id": "source.jaffle_shop.raw.sessions",
+      "status": "pass",
+      "max_loaded_at": "2026-06-30T17:00:00Z",
+      "snapshotted_at": "2026-06-30T20:00:00Z",
+      "age": 10800,
+      "criteria": {
+        "warn_after": {
+          "count": 24,
+          "period": "hour"
+        },
+        "error_after": {
+          "count": 48,
+          "period": "hour"
+        }
+      }
+    }
+  ]
+}

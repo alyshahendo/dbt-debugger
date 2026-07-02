@@ -1,0 +1,60 @@
+{
+  "metadata": {
+    "invocation_id": "demo-invocation-0001"
+  },
+  "args": {
+    "which": "build"
+  },
+  "results": [
+    {
+      "unique_id": "model.jaffle_shop.stg_customers",
+      "status": "success",
+      "execution_time": 0.42,
+      "message": "CREATE VIEW (0 rows)"
+    },
+    {
+      "unique_id": "model.jaffle_shop.stg_orders",
+      "status": "error",
+      "execution_time": 0.13,
+      "message": "Database Error in model stg_orders: relation \"analytics.raw.orders\" does not exist"
+    },
+    {
+      "unique_id": "model.jaffle_shop.stg_payments",
+      "status": "success",
+      "execution_time": 0.38,
+      "message": "CREATE VIEW (0 rows)"
+    },
+    {
+      "unique_id": "model.jaffle_shop.customers",
+      "status": "skipped",
+      "execution_time": 0.0,
+      "message": "SKIP"
+    },
+    {
+      "unique_id": "model.jaffle_shop.orders",
+      "status": "skipped",
+      "execution_time": 0.0,
+      "message": "SKIP"
+    },
+    {
+      "unique_id": "model.jaffle_shop.order_items",
+      "status": "skipped",
+      "execution_time": 0.0,
+      "message": "SKIP"
+    },
+    {
+      "unique_id": "test.jaffle_shop.not_null_stg_customers_customer_id",
+      "status": "pass",
+      "execution_time": 0.09,
+      "failures": 0,
+      "message": null
+    },
+    {
+      "unique_id": "test.jaffle_shop.accepted_values_stg_payments_payment_method",
+      "status": "warn",
+      "execution_time": 0.11,
+      "failures": 2,
+      "message": "Got 2 results, configured to warn if >0"
+    }
+  ]
+}

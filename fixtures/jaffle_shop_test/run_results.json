@@ -1,0 +1,67 @@
+{
+  "metadata": {
+    "invocation_id": "demo-test-0001"
+  },
+  "args": {
+    "which": "test",
+    "select": []
+  },
+  "results": [
+    {
+      "unique_id": "test.jaffle_shop.unique_dim_customers_customer_id",
+      "status": "fail",
+      "execution_time": 0.04,
+      "message": "Got 2 results, configured to fail if != 0",
+      "failures": 2
+    },
+    {
+      "unique_id": "test.jaffle_shop.not_null_fct_orders_customer_id",
+      "status": "fail",
+      "execution_time": 0.04,
+      "message": "Got 12 results, configured to fail if != 0",
+      "failures": 12
+    },
+    {
+      "unique_id": "test.jaffle_shop.relationships_fct_orders_customer_id",
+      "status": "fail",
+      "execution_time": 0.04,
+      "message": "Got 3 results, configured to fail if != 0",
+      "failures": 3
+    },
+    {
+      "unique_id": "test.jaffle_shop.not_null_stg_customers_customer_id",
+      "status": "pass",
+      "execution_time": 0.04,
+      "message": null,
+      "failures": 0
+    },
+    {
+      "unique_id": "test.jaffle_shop.unique_stg_orders_order_id",
+      "status": "pass",
+      "execution_time": 0.04,
+      "message": null,
+      "failures": 0
+    },
+    {
+      "unique_id": "test.jaffle_shop.accepted_values_stg_products_category",
+      "status": "warn",
+      "execution_time": 0.04,
+      "message": null,
+      "failures": 4
+    },
+    {
+      "unique_id": "test.jaffle_shop.not_null_stg_payments_payment_id",
+      "status": "pass",
+      "execution_time": 0.04,
+      "message": null,
+      "failures": 0
+    },
+    {
+      "unique_id": "test.jaffle_shop.unique_fct_sessions_session_id",
+      "status": "pass",
+      "execution_time": 0.04,
+      "message": null,
+      "failures": 0
+    }
+  ]
+}

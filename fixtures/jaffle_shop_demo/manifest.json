@@ -1,0 +1,392 @@
+{
+  "metadata": {
+    "invocation_id": "demo-0001",
+    "project_name": "jaffle_shop"
+  },
+  "nodes": {
+    "model.jaffle_shop.stg_customers": {
+      "resource_type": "model",
+      "name": "stg_customers",
+      "schema": "staging",
+      "database": "analytics",
+      "tags": [
+        "staging"
+      ],
+      "config": {
+        "materialized": "view"
+      },
+      "original_file_path": "models/staging/stg_customers.sql",
+      "depends_on": {
+        "nodes": [
+          "source.jaffle_shop.raw.customers"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.stg_orders": {
+      "resource_type": "model",
+      "name": "stg_orders",
+      "schema": "staging",
+      "database": "analytics",
+      "tags": [
+        "staging"
+      ],
+      "config": {
+        "materialized": "view"
+      },
+      "original_file_path": "models/staging/stg_orders.sql",
+      "depends_on": {
+        "nodes": [
+          "source.jaffle_shop.raw.orders"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.stg_payments": {
+      "resource_type": "model",
+      "name": "stg_payments",
+      "schema": "staging",
+      "database": "analytics",
+      "tags": [
+        "staging"
+      ],
+      "config": {
+        "materialized": "view"
+      },
+      "original_file_path": "models/staging/stg_payments.sql",
+      "depends_on": {
+        "nodes": [
+          "source.jaffle_shop.raw.payments"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.stg_products": {
+      "resource_type": "model",
+      "name": "stg_products",
+      "schema": "staging",
+      "database": "analytics",
+      "tags": [
+        "staging"
+      ],
+      "config": {
+        "materialized": "view"
+      },
+      "original_file_path": "models/staging/stg_products.sql",
+      "depends_on": {
+        "nodes": [
+          "source.jaffle_shop.raw.products"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.stg_sessions": {
+      "resource_type": "model",
+      "name": "stg_sessions",
+      "schema": "staging",
+      "database": "analytics",
+      "tags": [
+        "staging"
+      ],
+      "config": {
+        "materialized": "view"
+      },
+      "original_file_path": "models/staging/stg_sessions.sql",
+      "depends_on": {
+        "nodes": [
+          "source.jaffle_shop.raw.sessions"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.int_orders_joined": {
+      "resource_type": "model",
+      "name": "int_orders_joined",
+      "schema": "intermediate",
+      "database": "analytics",
+      "tags": [
+        "intermediate"
+      ],
+      "config": {
+        "materialized": "ephemeral"
+      },
+      "original_file_path": "models/intermediate/int_orders_joined.sql",
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.stg_orders",
+          "model.jaffle_shop.stg_customers"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.int_payments_enriched": {
+      "resource_type": "model",
+      "name": "int_payments_enriched",
+      "schema": "intermediate",
+      "database": "analytics",
+      "tags": [
+        "intermediate"
+      ],
+      "config": {
+        "materialized": "table"
+      },
+      "original_file_path": "models/intermediate/int_payments_enriched.sql",
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.stg_payments",
+          "model.jaffle_shop.stg_orders"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.int_customer_sessions": {
+      "resource_type": "model",
+      "name": "int_customer_sessions",
+      "schema": "intermediate",
+      "database": "analytics",
+      "tags": [
+        "intermediate"
+      ],
+      "config": {
+        "materialized": "ephemeral"
+      },
+      "original_file_path": "models/intermediate/int_customer_sessions.sql",
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.stg_customers",
+          "model.jaffle_shop.stg_sessions"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.dim_customers": {
+      "resource_type": "model",
+      "name": "dim_customers",
+      "schema": "marts",
+      "database": "analytics",
+      "tags": [
+        "marts"
+      ],
+      "config": {
+        "materialized": "table"
+      },
+      "original_file_path": "models/marts/dim_customers.sql",
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.stg_customers"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.dim_products": {
+      "resource_type": "model",
+      "name": "dim_products",
+      "schema": "marts",
+      "database": "analytics",
+      "tags": [
+        "marts"
+      ],
+      "config": {
+        "materialized": "table"
+      },
+      "original_file_path": "models/marts/dim_products.sql",
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.stg_products"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.fct_orders": {
+      "resource_type": "model",
+      "name": "fct_orders",
+      "schema": "marts",
+      "database": "analytics",
+      "tags": [
+        "marts"
+      ],
+      "config": {
+        "materialized": "table"
+      },
+      "original_file_path": "models/marts/fct_orders.sql",
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.int_orders_joined",
+          "model.jaffle_shop.int_payments_enriched"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.fct_payments": {
+      "resource_type": "model",
+      "name": "fct_payments",
+      "schema": "marts",
+      "database": "analytics",
+      "tags": [
+        "marts"
+      ],
+      "config": {
+        "materialized": "table"
+      },
+      "original_file_path": "models/marts/fct_payments.sql",
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.int_payments_enriched"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.fct_sessions": {
+      "resource_type": "model",
+      "name": "fct_sessions",
+      "schema": "marts",
+      "database": "analytics",
+      "tags": [
+        "marts"
+      ],
+      "config": {
+        "materialized": "table"
+      },
+      "original_file_path": "models/marts/fct_sessions.sql",
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.int_customer_sessions"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.fct_revenue_daily": {
+      "resource_type": "model",
+      "name": "fct_revenue_daily",
+      "schema": "reporting",
+      "database": "analytics",
+      "tags": [
+        "reporting"
+      ],
+      "config": {
+        "materialized": "table"
+      },
+      "original_file_path": "models/reporting/fct_revenue_daily.sql",
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.fct_orders",
+          "model.jaffle_shop.fct_payments"
+        ],
+        "macros": []
+      }
+    },
+    "model.jaffle_shop.dim_customer_ltv": {
+      "resource_type": "model",
+      "name": "dim_customer_ltv",
+      "schema": "marts",
+      "database": "analytics",
+      "tags": [
+        "marts"
+      ],
+      "config": {
+        "materialized": "table"
+      },
+      "original_file_path": "models/marts/dim_customer_ltv.sql",
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.dim_customers",
+          "model.jaffle_shop.fct_sessions"
+        ],
+        "macros": []
+      }
+    },
+    "test.jaffle_shop.not_null_stg_customers_customer_id": {
+      "resource_type": "test",
+      "name": "not_null_stg_customers_customer_id",
+      "column_name": "customer_id",
+      "test_metadata": {
+        "name": "not_null"
+      },
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.stg_customers"
+        ],
+        "macros": []
+      }
+    },
+    "test.jaffle_shop.unique_dim_customers_customer_id": {
+      "resource_type": "test",
+      "name": "unique_dim_customers_customer_id",
+      "column_name": "customer_id",
+      "test_metadata": {
+        "name": "unique"
+      },
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.dim_customers"
+        ],
+        "macros": []
+      }
+    },
+    "test.jaffle_shop.not_null_dim_products_product_id": {
+      "resource_type": "test",
+      "name": "not_null_dim_products_product_id",
+      "column_name": "product_id",
+      "test_metadata": {
+        "name": "not_null"
+      },
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.dim_products"
+        ],
+        "macros": []
+      }
+    },
+    "test.jaffle_shop.accepted_values_stg_products_category": {
+      "resource_type": "test",
+      "name": "accepted_values_stg_products_category",
+      "column_name": "category",
+      "test_metadata": {
+        "name": "accepted_values"
+      },
+      "depends_on": {
+        "nodes": [
+          "model.jaffle_shop.stg_products"
+        ],
+        "macros": []
+      }
+    }
+  },
+  "sources": {
+    "source.jaffle_shop.raw.customers": {
+      "resource_type": "source",
+      "source_name": "raw",
+      "name": "customers",
+      "schema": "raw",
+      "database": "analytics"
+    },
+    "source.jaffle_shop.raw.orders": {
+      "resource_type": "source",
+      "source_name": "raw",
+      "name": "orders",
+      "schema": "raw",
+      "database": "analytics"
+    },
+    "source.jaffle_shop.raw.payments": {
+      "resource_type": "source",
+      "source_name": "raw",
+      "name": "payments",
+      "schema": "raw",
+      "database": "analytics"
+    },
+    "source.jaffle_shop.raw.products": {
+      "resource_type": "source",
+      "source_name": "raw",
+      "name": "products",
+      "schema": "raw",
+      "database": "analytics"
+    },
+    "source.jaffle_shop.raw.sessions": {
+      "resource_type": "source",
+      "source_name": "raw",
+      "name": "sessions",
+      "schema": "raw",
+      "database": "analytics"
+    }
+  }
+}
