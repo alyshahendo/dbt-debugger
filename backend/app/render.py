@@ -347,7 +347,10 @@ const GRAPH = __GRAPH_JSON__;
   focusBtn.onclick=()=>{ if(!focusTargets.length) return;
     focusI=(focusI+1)%focusTargets.length; document.getElementById('focusIdx').textContent=(focusI+1)+' / '+focusTargets.length;
     const id=focusTargets[focusI], p=pos[id], r=wrap.getBoundingClientRect();
-    panX = r.width/2 - (p.x+NODE_W/2)*zoom; panY = r.height/2 - (p.y+NODE_H/2)*zoom; applyView(); select(id); };
+    const PAD=32, usable=Math.max(240, r.width-320), contentW=CW*zoom;
+    let px = usable/2 - (p.x+NODE_W/2)*zoom;
+    px = contentW<=usable-PAD ? PAD : Math.max(usable-PAD-contentW, Math.min(PAD, px));
+    panX = px; panY = r.height/2 - (p.y+NODE_H/2)*zoom; applyView(); select(id); };
 
   (function(){
     const PAN_SPEED=0.6;
