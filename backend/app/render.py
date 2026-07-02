@@ -246,8 +246,7 @@ const GRAPH = __GRAPH_JSON__;
   }
   if(s.failing_tests) chips.push(['#f2555a', plural(s.failing_tests,'test')+' failed']);
   if(s.stale_sources) chips.push(['#e8b34a', plural(s.stale_sources,'source')+' stale']);
-  const passed = isTestRun ? '' : plural(s.by_failure_class.ok||0,'model')+' passed';
-  chips.push(['#3ecf8e', passed || 'ok']);
+  if(!chips.length) chips.push(['#3ecf8e', 'all passed']);
   document.getElementById('chips').innerHTML = chips.map(c=>`<span class="chip"><span class="dot" style="background:${c[0]}"></span><span style="color:${c[0]}">${c[1]}</span></span>`).join('');
   document.getElementById('legend').innerHTML =
     [['#3ecf8e',isTestRun?'test passed':'model passed'],['#f2555a',isTestRun?'test failed':'model failed'],['#f0a24e',isTestRun?'test warning':'model skipped'],['#e8b34a','stale source']]
