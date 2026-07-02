@@ -322,7 +322,15 @@ const GRAPH = __GRAPH_JSON__;
        '<div style="font-size:9px;color:#5a5e68;margin-top:6px">Live analysis + fix arrives when run inside the /dbt-debug skill.</div></div>';
     drawer.innerHTML=h;
   }
-  window.__sel=select; window.__close=()=>{ drawer.classList.remove('open'); selId=null; Object.values(nodeEls).forEach(e=>e.classList.remove('sel')); };
+  function panToNode(id){
+    const p=pos[id]; if(!p){ select(id); return; }
+    const r=wrap.getBoundingClientRect();
+    const PAD=32, usable=Math.max(240, r.width-320), contentW=CW*zoom;
+    let px = usable/2 - (p.x+NODE_W/2)*zoom;
+    px = contentW<=usable-PAD ? PAD : Math.max(usable-PAD-contentW, Math.min(PAD, px));
+    panX = px; panY = r.height/2 - (p.y+NODE_H/2)*zoom; applyView(); select(id);
+  }
+  window.__sel=panToNode; window.__close=()=>{ drawer.classList.remove('open'); selId=null; Object.values(nodeEls).forEach(e=>e.classList.remove('sel')); };
   function escapeHtml(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
   let hidden=new Set();
@@ -346,11 +354,7 @@ const GRAPH = __GRAPH_JSON__;
   document.getElementById('focusIdx').textContent = focusTargets.length? ('1 / '+focusTargets.length):'0';
   focusBtn.onclick=()=>{ if(!focusTargets.length) return;
     focusI=(focusI+1)%focusTargets.length; document.getElementById('focusIdx').textContent=(focusI+1)+' / '+focusTargets.length;
-    const id=focusTargets[focusI], p=pos[id], r=wrap.getBoundingClientRect();
-    const PAD=32, usable=Math.max(240, r.width-320), contentW=CW*zoom;
-    let px = usable/2 - (p.x+NODE_W/2)*zoom;
-    px = contentW<=usable-PAD ? PAD : Math.max(usable-PAD-contentW, Math.min(PAD, px));
-    panX = px; panY = r.height/2 - (p.y+NODE_H/2)*zoom; applyView(); select(id); };
+    panToNode(focusTargets[focusI]); };
 
   (function(){
     const PAN_SPEED=0.6;
