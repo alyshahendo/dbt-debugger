@@ -43,3 +43,29 @@ def test_demo_freshness_overlay():
     assert g["summary"]["stale_sources"] == 1
     payments = next(n for n in g["nodes"] if n["id"].endswith("raw.payments"))
     assert payments["freshness_status"] == "warn"
+
+
+def test_model_columns_and_build_time_in_graph():
+    g = analyze_target(DEMO)
+    stg = next(n for n in g["nodes"] if n["id"].endswith("stg_customers"))
+
+    names = [c["name"] for c in stg["columns"]]
+    assert "customer_id" in names
+    assert all("data_type" in c for c in stg["columns"])
+    # completed_at is lifted from the run_results timing so the drawer can date the build
+    assert stg["completed_at"]
+
+
+def test_source_columns_flow_through():
+    g = analyze_target(DEMO)
+    payments = next(n for n in g["nodes"] if n["id"].endswith("raw.payments"))
+    cols = {c["name"]: c["data_type"] for c in payments["columns"]}
+    assert cols["payment_id"] == "integer"
+    assert cols["amount"] == "double"
+
+
+def test_failing_test_carries_type_for_labeling():
+    g = analyze_target(DEMO)
+    dim_products = next(n for n in g["nodes"] if n["id"].endswith("dim_products"))
+    failing = [t for t in dim_products["tests"] if t["status"] == "fail"]
+    assert failing and failing[0]["test_type"] == "not_null"

@@ -33,6 +33,24 @@ def test_render_embedded_json_parses():
     assert "model.jaffle_shop.stg_payments" in embedded["summary"]["root_causes"]
 
 
+def test_render_embeds_column_and_test_label_helpers():
+    graph = analyze_target(DEMO)
+    html = render_html(graph)
+    # the drawer builds columns and humanized test labels client-side
+    assert "function colsHtml" in html
+    assert "function testLabel" in html
+
+
+def test_source_columns_reach_embedded_json():
+    graph = analyze_target(DEMO)
+    html = render_html(graph)
+    marker = "const GRAPH = "
+    start = html.index(marker) + len(marker)
+    embedded = json.loads(html[start:html.index(";\n", start)])
+    payments = next(n for n in embedded["nodes"] if n["id"].endswith("raw.payments"))
+    assert any(c["name"] == "payment_id" for c in payments["columns"])
+
+
 def test_cli_example_writes_html(tmp_path):
     out = tmp_path / "lineage.html"
     code = main(["--example", "--out", str(out), "--no-open"])

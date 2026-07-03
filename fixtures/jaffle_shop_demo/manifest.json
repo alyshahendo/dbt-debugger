@@ -969,7 +969,54 @@
       "source_name": "raw",
       "name": "payments",
       "schema": "raw",
-      "database": "analytics"
+      "database": "analytics",
+      "columns": {
+        "payment_id": {
+          "name": "payment_id",
+          "description": "",
+          "meta": {},
+          "data_type": "integer",
+          "constraints": [],
+          "quote": null,
+          "tags": []
+        },
+        "order_id": {
+          "name": "order_id",
+          "description": "",
+          "meta": {},
+          "data_type": "integer",
+          "constraints": [],
+          "quote": null,
+          "tags": []
+        },
+        "payment_method": {
+          "name": "payment_method",
+          "description": "",
+          "meta": {},
+          "data_type": "varchar",
+          "constraints": [],
+          "quote": null,
+          "tags": []
+        },
+        "amount": {
+          "name": "amount",
+          "description": "",
+          "meta": {},
+          "data_type": "double",
+          "constraints": [],
+          "quote": null,
+          "tags": []
+        },
+        "created_at": {
+          "name": "created_at",
+          "description": "",
+          "meta": {},
+          "data_type": "timestamp",
+          "constraints": [],
+          "quote": null,
+          "tags": []
+        }
+      }
     },
     "source.jaffle_shop.raw.products": {
       "resource_type": "source",
