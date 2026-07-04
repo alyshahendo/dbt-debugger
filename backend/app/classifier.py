@@ -28,7 +28,6 @@ class Classification:
 
 
 def build_dag(artifacts: ParsedArtifacts) -> nx.DiGraph:
-    """Directed graph with edges parent -> child (dependency -> dependent)."""
     g = nx.DiGraph()
     g.add_nodes_from(artifacts.models)
     for uid, model in artifacts.models.items():
@@ -41,7 +40,6 @@ def build_dag(artifacts: ParsedArtifacts) -> nx.DiGraph:
 def _nearest_root_ancestor(
     g: nx.DiGraph, node: str, roots: set[str]
 ) -> Optional[str]:
-    """Closest ancestor of `node` that is in `roots` (BFS upward, level order)."""
     seen = {node}
     frontier = [p for p in g.predecessors(node)]
     while frontier:
