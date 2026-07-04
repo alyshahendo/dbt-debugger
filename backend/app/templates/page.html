@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dbt-debug · Lineage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>__STYLE__</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="brand">d</div>
+      <div><div class="htitle">dbt-debug · Lineage</div><div class="hsub mono" id="hsub"></div></div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </header>
+  <main>
+    <div id="side"></div>
+    <div id="canvaswrap">
+      <div class="toolbar">
+        <div class="tbtn" id="focusBtn">◂ Focus failure <span id="focusIdx"></span> ▸</div>
+        <div class="tbtn" id="pathBtn">◯ Failure paths only</div>
+        <div class="tbtn zbtn" id="zoomOut">−</div>
+        <div class="tbtn zbtn" id="zoomReset">100%</div>
+        <div class="tbtn zbtn" id="zoomIn">+</div>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div id="canvas"><svg id="edges" style="position:absolute;inset:0;z-index:1;pointer-events:none"></svg></div>
+    </div>
+    <div id="drawer"></div>
+  </main>
+</div>
+<script>
+const GRAPH = __GRAPH_JSON__;
+</script>
+<script>__APP_JS__</script>
+</body>
+</html>
