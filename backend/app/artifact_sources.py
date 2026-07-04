@@ -1,13 +1,3 @@
-"""Where the artifacts come from — one pluggable seam.
-
-An ArtifactSource resolves to the raw dbt JSON (manifest, run_results, and an
-optional sources.json). The rest of the skill neither knows nor cares where
-they came from. Mirrors the pattern the classifier/engine already rely on.
-
-v1 resolvers: local `target/` and explicit file paths. dbt Cloud lands behind
-the same `resolve()` contract (stub included).
-"""
-
 from __future__ import annotations
 
 import json
@@ -37,8 +27,6 @@ def _load(path: Path, *, required: bool) -> Optional[dict]:
 
 @dataclass
 class LocalTargetSource:
-    """Read manifest/run_results/(sources) from a dbt `target/` directory."""
-
     target_dir: str | Path
 
     def resolve(self) -> RawArtifacts:
@@ -52,8 +40,6 @@ class LocalTargetSource:
 
 @dataclass
 class DirectFilesSource:
-    """Point at explicit files anywhere on disk."""
-
     manifest_path: str | Path
     run_results_path: str | Path
     sources_path: Optional[str | Path] = None
@@ -72,12 +58,8 @@ class DirectFilesSource:
 
 @dataclass
 class DbtCloudSource:
-    """Fetch a run's artifacts from the dbt Cloud Admin API. (stub)
-
-    Kept behind the same contract so the rest of the skill is unchanged when
-    it's implemented. Settle run-selection ('run id' vs 'latest failed run of
-    job X') and cred handling when we build this out.
-    """
+    """Stub. Open before building: run-selection (explicit run id vs latest
+    failed run of a job) and credential handling."""
 
     account_id: str
     run_id: Optional[str] = None
@@ -97,7 +79,6 @@ def resolve_source(
     run_results: Optional[str] = None,
     sources: Optional[str] = None,
 ) -> ArtifactSource:
-    """Pick a resolver from CLI-style args (auto-detects local when unambiguous)."""
     if manifest and run_results:
         return DirectFilesSource(manifest, run_results, sources)
     if target:
