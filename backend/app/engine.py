@@ -1,13 +1,3 @@
-"""The engine, as a library: dbt artifacts -> failure-graph JSON.
-
-This is the single entry point the skill calls. It composes the pure
-`parser` + `classifier` modules and shapes their output into a JSON-able
-graph the lineage UI renders directly. No web server, no database.
-
-    from app.engine import analyze_target
-    graph = analyze_target("path/to/target")   # reads manifest/run_results/(sources)
-"""
-
 from __future__ import annotations
 
 from functools import lru_cache
@@ -37,11 +27,8 @@ def _lane_from_name(name: str) -> Optional[int]:
 
 
 def derive_lanes(models: dict[str, ParsedModel]) -> dict[str, int]:
-    """Assign each model a lane: naming convention first, graph depth as fallback.
-
-    Naming is fast and matches how analysts think; depth catches models that
-    don't follow the convention so they still land somewhere sensible.
-    """
+    """Lane by naming convention first; fall back to graph depth for models
+    that don't follow the stg_/int_/fct_ convention."""
     lanes: dict[str, int] = {}
 
     @lru_cache(maxsize=None)
@@ -163,7 +150,6 @@ def build_graph(artifacts: ParsedArtifacts) -> dict:
 
 
 def _rollup_test_status(tests: list[dict]) -> Optional[str]:
-    """Worst test outcome on a model: fail/error > warn > pass > None."""
     statuses = {t["status"] for t in tests}
     for worst in ("error", "fail", "warn", "pass"):
         if worst in statuses:
@@ -197,14 +183,12 @@ def _summarize(nodes: list[dict]) -> dict:
 
 
 def analyze(source: "ArtifactSource") -> dict:
-    """Resolve artifacts from any source and return the failure graph."""
     raw = source.resolve()
     artifacts = parse_artifacts(raw.manifest, raw.run_results, raw.sources_results)
     return build_graph(artifacts)
 
 
 def analyze_target(target_dir: str | Path) -> dict:
-    """Convenience: analyze a local dbt `target/` directory."""
     from .artifact_sources import LocalTargetSource
 
     return analyze(LocalTargetSource(target_dir))
