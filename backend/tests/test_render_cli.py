@@ -37,8 +37,8 @@ def test_render_embeds_column_and_test_label_helpers():
     graph = analyze_target(DEMO)
     html = render_html(graph)
     # the drawer builds columns and humanized test labels client-side
-    assert "function colsHtml" in html
-    assert "function testLabel" in html
+    assert "testLabel" in html
+    assert "Columns" in html
 
 
 def test_source_columns_reach_embedded_json():

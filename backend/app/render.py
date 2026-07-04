@@ -6,7 +6,9 @@ from pathlib import Path
 _TEMPLATES = Path(__file__).parent / "templates"
 _PAGE = (_TEMPLATES / "page.html").read_text()
 _STYLE = (_TEMPLATES / "style.css").read_text()
-_APP_JS = (_TEMPLATES / "app.js").read_text()
+_APP_JS = "(function(){\n" + "\n".join(
+    p.read_text() for p in sorted((_TEMPLATES / "js").glob("*.js"))
+) + "\n})();\n"
 
 
 def render_html(graph: dict) -> str:
