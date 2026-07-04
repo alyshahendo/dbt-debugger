@@ -92,8 +92,9 @@ def parse_manifest(manifest: dict) -> tuple[dict[str, ParsedModel], dict[str, Pa
     source_ids = set(manifest.get("sources") or {})
 
     models: dict[str, ParsedModel] = {}
-    for uid in model_ids:
-        node = nodes[uid]
+    for uid, node in nodes.items():
+        if uid not in model_ids:
+            continue
         dep_nodes = node.get("depends_on", {}).get("nodes", [])
         depends = [d for d in dep_nodes if d in model_ids]
         src_deps = [d for d in dep_nodes if d in source_ids]

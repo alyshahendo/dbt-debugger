@@ -89,7 +89,7 @@ def build_graph(artifacts: ParsedArtifacts) -> dict:
     referenced_sources = {
         s for m in artifacts.models.values() for s in m.source_deps
     }
-    for uid in referenced_sources:
+    for uid in sorted(referenced_sources):
         src = artifacts.sources.get(uid)
         if src is None:
             continue
