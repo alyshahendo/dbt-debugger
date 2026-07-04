@@ -1,9 +1,3 @@
-"""Parse dbt `manifest.json` + `run_results.json` into plain structures.
-
-These are pure functions over already-loaded dicts so they're trivial to unit
-test. Persistence and classification happen elsewhere (ingest.py / classifier.py).
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -73,7 +67,6 @@ def _is_test(node: dict) -> bool:
 
 
 def parse_sources(manifest: dict) -> dict[str, ParsedSource]:
-    """Source definitions live in a top-level `sources` dict (not `nodes`)."""
     sources: dict[str, ParsedSource] = {}
     for uid, node in (manifest.get("sources") or {}).items():
         name = ".".join(
@@ -162,11 +155,6 @@ def parse_run_results(run_results: dict) -> tuple[Optional[str], dict[str, Parse
 
 
 def parse_source_freshness(sources_results: dict) -> dict[str, dict]:
-    """Parse an optional `sources.json` (from `dbt source freshness`).
-
-    Returns a map of source unique_id -> {status, max_loaded_at, snapshotted_at,
-    age_seconds}. Absent file / malformed input yields an empty map.
-    """
     freshness: dict[str, dict] = {}
     for r in (sources_results or {}).get("results", []):
         uid = r.get("unique_id")
