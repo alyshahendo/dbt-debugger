@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dbt-debug · Lineage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>:root {
+  --accent: #ff7a4d;
+  --accent2: #e8472c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: #0b0c0f;
+  color: #e6e7ea;
+  font-family: 'Manrope', sans-serif;
+  overflow: hidden;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex: none;
+}
+
+.brand {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  background: linear-gradient(150deg, var(--accent), var(--accent2));
+}
+
+.htitle {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -.01em;
+}
+
+.hsub {
+  font-size: 11px;
+  color: #6b6f7a;
+}
+
+.chips {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  position: relative;
+}
+
+#side {
+  width: 214px;
+  flex: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  background: linear-gradient(180deg, #0d0e13, #0c0d11);
+  padding: 12px;
+  overflow: auto;
+}
+
+.side-h {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #6b6f7a;
+  margin: 2px 0 8px;
+}
+
+.fail-item {
+  border-radius: 7px;
+  padding: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  background: rgba(242, 85, 90, 0.08);
+  border: 1px solid rgba(242, 85, 90, 0.35);
+}
+
+.fail-item.warnish {
+  background: rgba(232, 179, 74, 0.08);
+  border-color: rgba(232, 179, 74, 0.4);
+}
+
+.fail-item .nm {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #f3d3d4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fail-item .sub {
+  font-size: 10px;
+  color: #6b6f7a;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#canvaswrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #0a0b0e;
+  cursor: grab;
+}
+
+#canvaswrap.panning {
+  cursor: grabbing;
+  user-select: none;
+}
+
+#canvaswrap.panning .node {
+  cursor: grabbing;
+}
+
+#canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.toolbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+}
+
+.tbtn {
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cfd2d8;
+}
+
+.zbtn {
+  min-width: 16px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+#zoomReset {
+  min-width: 44px;
+}
+
+.tbtn.on {
+  background: rgba(242, 133, 60, .16);
+  border-color: rgba(242, 133, 60, .6);
+  color: #f2a35c;
+}
+
+.legend {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+}
+
+.node {
+  position: absolute;
+  z-index: 2;
+  width: 158px;
+  height: 46px;
+  border-radius: 9px;
+  padding: 6px 26px 6px 9px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  overflow: hidden;
+  background: #0b0c0f;
+}
+
+.node .nm {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.node .sub {
+  font-size: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.node .ico {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.n-ok {
+  background: linear-gradient(rgba(62, 207, 142, 0.12), rgba(62, 207, 142, 0.12)), #0b0c0f;
+  border: 1px solid rgba(62, 207, 142, 0.5);
+  color: #cdeede;
+}
+
+.n-ok .ico {
+  color: #3ecf8e;
+}
+
+.n-root {
+  background: linear-gradient(rgba(242, 85, 90, 0.20), rgba(242, 85, 90, 0.20)), #0b0c0f;
+  border: 1px solid #f2555a;
+  color: #f3d3d4;
+}
+
+.n-root .ico {
+  color: #f2555a;
+}
+
+.n-cas {
+  background: linear-gradient(rgba(232, 146, 58, 0.19), rgba(232, 146, 58, 0.19)), #0b0c0f;
+  border: 1px dashed rgba(232, 146, 58, 0.7);
+  color: #f0cfa0;
+}
+
+.n-cas .ico {
+  color: #f0a24e;
+}
+
+.n-src {
+  background: linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)), #0b0c0f;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  color: #9aa0ab;
+}
+
+.n-stale {
+  background: linear-gradient(rgba(232, 179, 74, 0.13), rgba(232, 179, 74, 0.13)), #0b0c0f;
+  border: 1px solid rgba(232, 179, 74, 0.7);
+  color: #f0d79a;
+}
+
+.n-stale .ico {
+  color: #e8b34a;
+}
+
+.n-neutral {
+  background: linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)), #0b0c0f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #c9ccd2;
+}
+
+.node.sel {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+#drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  z-index: 20;
+  padding: 16px;
+  overflow: auto;
+  background: linear-gradient(180deg, #0d0e13, #0c0d11);
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: -30px 0 70px -26px rgba(0, 0, 0, 0.9);
+  transform: translateX(340px);
+  transition: transform .2s cubic-bezier(.2, .7, .2, 1);
+}
+
+#drawer.open {
+  transform: translateX(0);
+}
+
+#drawer .x {
+  float: right;
+  color: #6b6f7a;
+  cursor: pointer;
+}
+
+.d-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.d-path {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #5a5e68;
+}
+
+.block {
+  border-radius: 7px;
+  padding: 10px;
+  margin-top: 12px;
+}
+
+.block-err {
+  background: rgba(242, 85, 90, 0.10);
+  border: 1px solid rgba(242, 85, 90, 0.28);
+}
+
+.block-cas {
+  background: rgba(232, 146, 58, 0.10);
+  border: 1px solid rgba(232, 146, 58, 0.35);
+}
+
+.block-root {
+  background: rgba(255, 157, 122, 0.10);
+  border: 1px solid rgba(255, 157, 122, 0.34);
+}
+
+.block-lbl {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 6px;
+}
+
+pre {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  white-space: pre-wrap;
+  margin: 0;
+  color: #f0c8c9;
+}
+
+.ask {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.ask-lbl {
+  color: #ff9d7a;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-weight: 700;
+}
+
+.ask-box {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ask-box input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: #cfd2d8;
+  font-size: 11px;
+}
+
+.tests-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+  margin-top: 5px;
+}
+
+.tests-row .tname {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.tests-row .badge {
+  flex: none;
+}
+
+.badge {
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+
+.b-fail {
+  background: rgba(242, 85, 90, 0.2);
+  color: #f2555a;
+}
+
+.b-warn {
+  background: rgba(232, 179, 74, 0.2);
+  color: #e8b34a;
+}
+
+.b-pass {
+  background: rgba(62, 207, 142, 0.18);
+  color: #3ecf8e;
+}
+
+.b-neutral {
+  background: rgba(255, 255, 255, 0.08);
+  color: #9aa0ab;
+}
+
+.d-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.d-head .x {
+  margin-left: auto;
+  float: none;
+}
+
+.d-type {
+  font-size: 11px;
+  color: #6b6f7a;
+}
+
+.badge.b-lg {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 4px 9px;
+  border-radius: 6px;
+}
+
+.block-ok {
+  background: rgba(62, 207, 142, 0.09);
+  border: 1px solid rgba(62, 207, 142, 0.28);
+}
+
+.built {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.built .when {
+  font-size: 11px;
+  color: #c3c6cd;
+  margin-top: 2px;
+}
+
+.built .ts {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #5a5e68;
+  white-space: nowrap;
+}
+
+.tiles {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.tile {
+  flex: 1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  padding: 10px 11px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tile .k {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #6b6f7a;
+}
+
+.tile .v {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  margin-top: 6px;
+  color: #e6e7ea;
+}
+
+.cols-h {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #6b6f7a;
+  margin: 18px 0 2px;
+}
+
+.col-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+}
+
+.col-row .cname {
+  font-family: 'JetBrains Mono', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-row .ctype {
+  font-family: 'JetBrains Mono', monospace;
+  color: #8aa6e0;
+  white-space: nowrap;
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="brand">d</div>
+      <div><div class="htitle">dbt-debug · Lineage</div><div class="hsub mono" id="hsub"></div></div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </header>
+  <main>
+    <div id="side"></div>
+    <div id="canvaswrap">
+      <div class="toolbar">
+        <div class="tbtn" id="focusBtn">◂ Focus failure <span id="focusIdx"></span> ▸</div>
+        <div class="tbtn" id="pathBtn">◯ Failure paths only</div>
+        <div class="tbtn zbtn" id="zoomOut">−</div>
+        <div class="tbtn zbtn" id="zoomReset">100%</div>
+        <div class="tbtn zbtn" id="zoomIn">+</div>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div id="canvas"><svg id="edges" style="position:absolute;inset:0;z-index:1;pointer-events:none"></svg></div>
+    </div>
+    <div id="drawer"></div>
+  </main>
+</div>
+<script>
+const GRAPH = {"command": "run", "selection": null, "invocation_id": "run-0001", "nodes": [{"id": "source.jaffle_shop.raw.customers", "name": "raw.customers", "resource_type": "source", "schema": "raw", "lane": 0, "freshness_status": null, "freshness_age_seconds": null, "columns": []}, {"id": "source.jaffle_shop.raw.orders", "name": "raw.orders", "resource_type": "source", "schema": "raw", "lane": 0, "freshness_status": null, "freshness_age_seconds": null, "columns": []}, {"id": "source.jaffle_shop.raw.payments", "name": "raw.payments", "resource_type": "source", "schema": "raw", "lane": 0, "freshness_status": null, "freshness_age_seconds": null, "columns": [{"name": "payment_id", "data_type": "integer"}, {"name": "order_id", "data_type": "integer"}, {"name": "payment_method", "data_type": "varchar"}, {"name": "amount", "data_type": "double"}, {"name": "created_at", "data_type": "timestamp"}]}, {"id": "source.jaffle_shop.raw.products", "name": "raw.products", "resource_type": "source", "schema": "raw", "lane": 0, "freshness_status": null, "freshness_age_seconds": null, "columns": []}, {"id": "source.jaffle_shop.raw.sessions", "name": "raw.sessions", "resource_type": "source", "schema": "raw", "lane": 0, "freshness_status": null, "freshness_age_seconds": null, "columns": []}, {"id": "model.jaffle_shop.stg_customers", "name": "stg_customers", "resource_type": "model", "schema": "staging", "materialization": "view", "tags": ["staging"], "path": "models/staging/stg_customers.sql", "lane": 1, "status": "success", "failure_class": "ok", "blamed_root_cause": null, "execution_time": 0.5, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "customer_id", "data_type": "integer"}, {"name": "first_name", "data_type": "varchar"}, {"name": "last_name", "data_type": "varchar"}, {"name": "email", "data_type": "varchar"}, {"name": "created_at", "data_type": "timestamp"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.stg_orders", "name": "stg_orders", "resource_type": "model", "schema": "staging", "materialization": "view", "tags": ["staging"], "path": "models/staging/stg_orders.sql", "lane": 1, "status": "error", "failure_class": "root_cause", "blamed_root_cause": "model.jaffle_shop.stg_orders", "execution_time": 0.62, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": "Database Error in model stg_orders\n  relation \"raw.orders\" does not exist\n  LINE 4:   from {{ source(\"raw\", \"orders\") }}", "columns": [{"name": "order_id", "data_type": "integer"}, {"name": "customer_id", "data_type": "integer"}, {"name": "order_status", "data_type": "varchar"}, {"name": "order_date", "data_type": "date"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.stg_payments", "name": "stg_payments", "resource_type": "model", "schema": "staging", "materialization": "view", "tags": ["staging"], "path": "models/staging/stg_payments.sql", "lane": 1, "status": "success", "failure_class": "ok", "blamed_root_cause": null, "execution_time": 0.5, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "payment_id", "data_type": "integer"}, {"name": "order_id", "data_type": "integer"}, {"name": "payment_method", "data_type": "varchar"}, {"name": "amount", "data_type": "numeric"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.stg_products", "name": "stg_products", "resource_type": "model", "schema": "staging", "materialization": "view", "tags": ["staging"], "path": "models/staging/stg_products.sql", "lane": 1, "status": "success", "failure_class": "ok", "blamed_root_cause": null, "execution_time": 0.5, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "product_id", "data_type": "integer"}, {"name": "product_name", "data_type": "varchar"}, {"name": "category", "data_type": "varchar"}, {"name": "price", "data_type": "numeric"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.stg_sessions", "name": "stg_sessions", "resource_type": "model", "schema": "staging", "materialization": "view", "tags": ["staging"], "path": "models/staging/stg_sessions.sql", "lane": 1, "status": "success", "failure_class": "ok", "blamed_root_cause": null, "execution_time": 0.5, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "session_id", "data_type": "integer"}, {"name": "customer_id", "data_type": "integer"}, {"name": "started_at", "data_type": "timestamp"}, {"name": "channel", "data_type": "varchar"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.int_orders_joined", "name": "int_orders_joined", "resource_type": "model", "schema": "intermediate", "materialization": "ephemeral", "tags": ["intermediate"], "path": "models/intermediate/int_orders_joined.sql", "lane": 2, "status": "skipped", "failure_class": "casualty", "blamed_root_cause": "model.jaffle_shop.stg_orders", "execution_time": 0.0, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "order_id", "data_type": "integer"}, {"name": "customer_id", "data_type": "integer"}, {"name": "order_status", "data_type": "varchar"}, {"name": "order_date", "data_type": "date"}, {"name": "order_total", "data_type": "numeric"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.int_payments_enriched", "name": "int_payments_enriched", "resource_type": "model", "schema": "intermediate", "materialization": "table", "tags": ["intermediate"], "path": "models/intermediate/int_payments_enriched.sql", "lane": 2, "status": "skipped", "failure_class": "casualty", "blamed_root_cause": "model.jaffle_shop.stg_orders", "execution_time": 0.0, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "payment_id", "data_type": "integer"}, {"name": "order_id", "data_type": "integer"}, {"name": "amount", "data_type": "numeric"}, {"name": "payment_method", "data_type": "varchar"}, {"name": "is_completed", "data_type": "boolean"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.int_customer_sessions", "name": "int_customer_sessions", "resource_type": "model", "schema": "intermediate", "materialization": "ephemeral", "tags": ["intermediate"], "path": "models/intermediate/int_customer_sessions.sql", "lane": 2, "status": "success", "failure_class": "ok", "blamed_root_cause": null, "execution_time": 0.5, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "customer_id", "data_type": "integer"}, {"name": "session_count", "data_type": "integer"}, {"name": "first_session_at", "data_type": "timestamp"}, {"name": "last_session_at", "data_type": "timestamp"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.dim_customers", "name": "dim_customers", "resource_type": "model", "schema": "marts", "materialization": "table", "tags": ["marts"], "path": "models/marts/dim_customers.sql", "lane": 3, "status": "success", "failure_class": "ok", "blamed_root_cause": null, "execution_time": 0.5, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "customer_id", "data_type": "integer"}, {"name": "first_name", "data_type": "varchar"}, {"name": "last_name", "data_type": "varchar"}, {"name": "email", "data_type": "varchar"}, {"name": "lifetime_orders", "data_type": "integer"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.dim_products", "name": "dim_products", "resource_type": "model", "schema": "marts", "materialization": "table", "tags": ["marts"], "path": "models/marts/dim_products.sql", "lane": 3, "status": "success", "failure_class": "ok", "blamed_root_cause": null, "execution_time": 0.5, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "product_id", "data_type": "integer"}, {"name": "product_name", "data_type": "varchar"}, {"name": "category", "data_type": "varchar"}, {"name": "price", "data_type": "numeric"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.fct_orders", "name": "fct_orders", "resource_type": "model", "schema": "marts", "materialization": "table", "tags": ["marts"], "path": "models/marts/fct_orders.sql", "lane": 3, "status": "skipped", "failure_class": "casualty", "blamed_root_cause": "model.jaffle_shop.stg_orders", "execution_time": 0.0, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "order_id", "data_type": "integer"}, {"name": "customer_id", "data_type": "integer"}, {"name": "order_date", "data_type": "date"}, {"name": "order_total", "data_type": "numeric"}, {"name": "payment_status", "data_type": "varchar"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.fct_payments", "name": "fct_payments", "resource_type": "model", "schema": "marts", "materialization": "table", "tags": ["marts"], "path": "models/marts/fct_payments.sql", "lane": 3, "status": "skipped", "failure_class": "casualty", "blamed_root_cause": "model.jaffle_shop.stg_orders", "execution_time": 0.0, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "payment_id", "data_type": "integer"}, {"name": "order_id", "data_type": "integer"}, {"name": "amount", "data_type": "numeric"}, {"name": "payment_method", "data_type": "varchar"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.fct_sessions", "name": "fct_sessions", "resource_type": "model", "schema": "marts", "materialization": "table", "tags": ["marts"], "path": "models/marts/fct_sessions.sql", "lane": 3, "status": "success", "failure_class": "ok", "blamed_root_cause": null, "execution_time": 0.5, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "session_id", "data_type": "integer"}, {"name": "customer_id", "data_type": "integer"}, {"name": "started_at", "data_type": "timestamp"}, {"name": "channel", "data_type": "varchar"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.fct_revenue_daily", "name": "fct_revenue_daily", "resource_type": "model", "schema": "reporting", "materialization": "table", "tags": ["reporting"], "path": "models/reporting/fct_revenue_daily.sql", "lane": 4, "status": "skipped", "failure_class": "casualty", "blamed_root_cause": "model.jaffle_shop.stg_orders", "execution_time": 0.0, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "date_day", "data_type": "date"}, {"name": "total_revenue", "data_type": "numeric"}, {"name": "order_count", "data_type": "integer"}], "tests": [], "test_status": null}, {"id": "model.jaffle_shop.dim_customer_ltv", "name": "dim_customer_ltv", "resource_type": "model", "schema": "marts", "materialization": "table", "tags": ["marts"], "path": "models/marts/dim_customer_ltv.sql", "lane": 4, "status": "success", "failure_class": "ok", "blamed_root_cause": null, "execution_time": 0.5, "completed_at": "2026-07-03T09:15:08.000000+00:00", "message": null, "columns": [{"name": "customer_id", "data_type": "integer"}, {"name": "lifetime_value", "data_type": "numeric"}, {"name": "avg_order_value", "data_type": "numeric"}], "tests": [], "test_status": null}], "edges": [{"source": "source.jaffle_shop.raw.customers", "target": "model.jaffle_shop.stg_customers"}, {"source": "source.jaffle_shop.raw.orders", "target": "model.jaffle_shop.stg_orders"}, {"source": "source.jaffle_shop.raw.payments", "target": "model.jaffle_shop.stg_payments"}, {"source": "source.jaffle_shop.raw.products", "target": "model.jaffle_shop.stg_products"}, {"source": "source.jaffle_shop.raw.sessions", "target": "model.jaffle_shop.stg_sessions"}, {"source": "model.jaffle_shop.stg_orders", "target": "model.jaffle_shop.int_orders_joined"}, {"source": "model.jaffle_shop.stg_customers", "target": "model.jaffle_shop.int_orders_joined"}, {"source": "model.jaffle_shop.stg_payments", "target": "model.jaffle_shop.int_payments_enriched"}, {"source": "model.jaffle_shop.stg_orders", "target": "model.jaffle_shop.int_payments_enriched"}, {"source": "model.jaffle_shop.stg_customers", "target": "model.jaffle_shop.int_customer_sessions"}, {"source": "model.jaffle_shop.stg_sessions", "target": "model.jaffle_shop.int_customer_sessions"}, {"source": "model.jaffle_shop.stg_customers", "target": "model.jaffle_shop.dim_customers"}, {"source": "model.jaffle_shop.stg_products", "target": "model.jaffle_shop.dim_products"}, {"source": "model.jaffle_shop.int_orders_joined", "target": "model.jaffle_shop.fct_orders"}, {"source": "model.jaffle_shop.int_payments_enriched", "target": "model.jaffle_shop.fct_orders"}, {"source": "model.jaffle_shop.int_payments_enriched", "target": "model.jaffle_shop.fct_payments"}, {"source": "model.jaffle_shop.int_customer_sessions", "target": "model.jaffle_shop.fct_sessions"}, {"source": "model.jaffle_shop.fct_orders", "target": "model.jaffle_shop.fct_revenue_daily"}, {"source": "model.jaffle_shop.fct_payments", "target": "model.jaffle_shop.fct_revenue_daily"}, {"source": "model.jaffle_shop.dim_customers", "target": "model.jaffle_shop.dim_customer_ltv"}, {"source": "model.jaffle_shop.fct_sessions", "target": "model.jaffle_shop.dim_customer_ltv"}], "summary": {"models": 15, "sources": 5, "by_failure_class": {"ok": 9, "root_cause": 1, "casualty": 5}, "root_causes": ["model.jaffle_shop.stg_orders"], "failing_tests": 0, "stale_sources": 0}};
+</script>
+<script>(function(){
+const LANE_X = i => 24 + i*224;
+const NODE_W = 158, NODE_H = 46, ROW = 72, TOP = 70;
+const ZMIN = 0.3, ZMAX = 2.5;
+
+function escapeHtml(s){
+  return (s==null ? '' : String(s)).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+
+const raw = s => ({__html: s==null ? '' : String(s)});
+
+function frag(v){
+  if(v==null || v===false || v===true) return '';
+  if(Array.isArray(v)) return v.map(frag).join('');
+  if(typeof v==='object' && v.__html!=null) return v.__html;
+  return escapeHtml(String(v));
+}
+
+function html(strings, ...vals){
+  let out='';
+  strings.forEach((s,i)=>{ out += s + (i<vals.length ? frag(vals[i]) : ''); });
+  return {__html: out};
+}
+
+function setHTML(el, tmpl){
+  el.innerHTML = tmpl && tmpl.__html!=null ? tmpl.__html : frag(tmpl);
+}
+
+const plural = (n,w) => n+' '+w+(n===1 ? '' : 's');
+
+const humanTest = t =>
+  ({not_null:'not null', unique:'unique', accepted_values:'accepted values', relationships:'relationships'}[t]
+    || (t||'test').replace(/_/g,' '));
+
+function testLabel(t, modelName){
+  const nm = t.name||'';
+  const pre = (t.test_type||'')+'_'+modelName+'_';
+  let col = nm.indexOf(pre)===0 ? nm.slice(pre.length) : nm;
+  col = col.replace(/__.*$/,'');
+  return humanTest(t.test_type) + (col && col!==nm ? ' · '+col : '');
+}
+
+function relTime(iso){
+  if(!iso) return '';
+  const t = Date.parse(iso);
+  if(isNaN(t)) return '';
+  const s = (Date.now()-t)/1000;
+  if(s<60) return 'just now';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+
+function fmtTime(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d.getTime())) return '';
+  const p = x => String(x).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+}
+
+const STATUS = {
+  passed:   {node:'n-ok',      icon:'✓', color:'#3ecf8e', badge:['SUCCESS','b-pass']},
+  failed:   {node:'n-root',    icon:'✕', color:'#f2555a', badge:['FAILED','b-fail']},
+  testfail: {node:'n-root',    icon:'✕', color:'#f2555a', badge:['TEST FAILED','b-fail']},
+  skipped:  {node:'n-cas',     icon:'⊘', color:'#f0a24e', badge:['SKIPPED','b-warn']},
+  stale:    {node:'n-stale',   icon:'⧗', color:'#e8b34a', badge:['STALE','b-warn']},
+  warn:     {node:'n-stale',   icon:'⧗', color:'#e8b34a', badge:['WARNING','b-warn']},
+  source:   {node:'n-src',     icon:'◦', color:'#8aa6e0', badge:['SOURCE','b-neutral']},
+  neutral:  {node:'n-neutral', icon:'◦', color:'#9aa0ab', badge:['SUCCESS','b-pass']},
+};
+
+function nodeState(n, isTestRun){
+  if(n.resource_type==='source')
+    return (n.freshness_status==='warn'||n.freshness_status==='error') ? 'stale' : 'source';
+  if(isTestRun){
+    if(n.test_status==='fail'||n.test_status==='error') return 'testfail';
+    if(n.test_status==='warn') return 'warn';
+    return 'passed';
+  }
+  if(n.status==='error') return 'failed';
+  if(n.failure_class==='casualty'||n.failure_class==='skipped') return 'skipped';
+  if(n.test_status==='fail'||n.test_status==='error') return 'testfail';
+  if(n.test_status==='warn') return 'warn';
+  if(n.status==='success'||n.failure_class==='ok') return 'passed';
+  return 'neutral';
+}
+
+function badgeState(n){
+  if(n.resource_type==='source')
+    return (n.freshness_status==='warn'||n.freshness_status==='error') ? 'stale' : 'source';
+  if(n.status==='error') return 'failed';
+  if(n.failure_class==='casualty') return 'skipped';
+  if(n.test_status==='fail'||n.test_status==='error') return 'testfail';
+  if(n.test_status==='warn') return 'warn';
+  return 'passed';
+}
+
+class GraphModel {
+  constructor(graph){
+    this.graph = graph;
+    this.isTestRun = graph.command === 'test';
+
+    this.byId = {};
+    graph.nodes.forEach(n => this.byId[n.id] = n);
+
+    this.childrenOf = {};
+    graph.edges.forEach(e => { (this.childrenOf[e.source] = this.childrenOf[e.source] || []).push(e.target); });
+
+    this.rootCauses = graph.nodes.filter(n => n.failure_class==='root_cause').map(n => n.id);
+
+    this.blastOf = {};
+    graph.nodes.forEach(n => {
+      if(n.blamed_root_cause && n.failure_class==='casualty')
+        this.blastOf[n.blamed_root_cause] = (this.blastOf[n.blamed_root_cause]||0) + 1;
+    });
+
+    this.pos = {};
+    this.width = 0;
+    this.height = 0;
+    this.cascade = new Set();
+
+    this._computeCascade();
+    this._layout();
+  }
+
+  blast(id){ return this.blastOf[id] || 0; }
+
+  _computeCascade(){
+    const seeds = this.isTestRun
+      ? this.graph.nodes.filter(n => n.test_status==='fail'||n.test_status==='error').map(n => n.id)
+      : this.rootCauses;
+    const stack = [...seeds];
+    seeds.forEach(r => this.cascade.add(r));
+    while(stack.length){
+      const u = stack.pop();
+      (this.childrenOf[u] || []).forEach(v => {
+        if(this.cascade.has(v)) return;
+        const nv = this.byId[v];
+        if(!nv) return;
+        const follow = this.isTestRun ? true : (nv.failure_class==='casualty'||nv.failure_class==='skipped');
+        if(follow){ this.cascade.add(v); stack.push(v); }
+      });
+    }
+  }
+
+  _layout(){
+    const lanes = {};
+    this.graph.nodes.forEach(n => { (lanes[n.lane] = lanes[n.lane] || []).push(n); });
+    Object.values(lanes).forEach(arr => arr.sort((a,b) =>
+      (a.resource_type<b.resource_type ? -1 : a.resource_type>b.resource_type ? 1 : a.name.localeCompare(b.name))));
+    let maxRows = 0, maxLane = 0;
+    Object.keys(lanes).forEach(l => {
+      lanes[l].forEach((n,i) => this.pos[n.id] = {x: LANE_X(+l), y: TOP + i*ROW});
+      maxRows = Math.max(maxRows, lanes[l].length);
+      maxLane = Math.max(maxLane, +l);
+    });
+    this.width = LANE_X(maxLane) + NODE_W + 40;
+    this.height = TOP + maxRows*ROW + 30;
+  }
+}
+
+class Viewport {
+  constructor(model){
+    this.model = model;
+    this.canvas = document.getElementById('canvas');
+    this.wrap = document.getElementById('canvaswrap');
+    this.zoom = 1;
+    this.panX = 0;
+    this.panY = 0;
+    this._setup();
+  }
+
+  apply(){
+    this.canvas.style.transform = 'translate('+this.panX+'px,'+this.panY+'px) scale('+this.zoom+')';
+    document.getElementById('zoomReset').textContent = Math.round(this.zoom*100)+'%';
+  }
+
+  zoomTo(z, ox, oy){
+    z = Math.max(ZMIN, Math.min(ZMAX, z));
+    const r = this.wrap.getBoundingClientRect();
+    if(ox==null){ ox = r.width/2; oy = r.height/2; }
+    const cx = (ox-this.panX)/this.zoom, cy = (oy-this.panY)/this.zoom;
+    this.zoom = z;
+    this.panX = ox - cx*this.zoom;
+    this.panY = oy - cy*this.zoom;
+    this.apply();
+  }
+
+  panToNode(id){
+    const p = this.model.pos[id];
+    if(!p) return;
+    const r = this.wrap.getBoundingClientRect();
+    const PAD = 32, usable = Math.max(240, r.width-320);
+    const contentW = this.model.width*this.zoom, contentH = this.model.height*this.zoom;
+    let px = usable/2 - (p.x+NODE_W/2)*this.zoom;
+    px = contentW<=usable-PAD ? PAD : Math.max(usable-PAD-contentW, Math.min(PAD, px));
+    let py = r.height/2 - (p.y+NODE_H/2)*this.zoom;
+    py = contentH<=r.height-PAD ? PAD : Math.max(r.height-PAD-contentH, Math.min(PAD, py));
+    this.panX = px;
+    this.panY = py;
+    this.apply();
+  }
+
+  _setup(){
+    const self = this, wrap = this.wrap;
+    wrap.addEventListener('wheel', e => {
+      e.preventDefault();
+      const r = wrap.getBoundingClientRect();
+      self.zoomTo(self.zoom*Math.exp(-e.deltaY*0.002), e.clientX-r.left, e.clientY-r.top);
+    }, {passive:false});
+    document.getElementById('zoomIn').onclick = () => self.zoomTo(self.zoom*1.2);
+    document.getElementById('zoomOut').onclick = () => self.zoomTo(self.zoom/1.2);
+    document.getElementById('zoomReset').onclick = () => self.zoomTo(1);
+
+    const PAN_SPEED = 0.6;
+    let sx=0, sy=0, spx=0, spy=0, down=false, dragged=false;
+    wrap.addEventListener('pointerdown', e => {
+      if(e.button!==0) return;
+      down = true; dragged = false;
+      sx = e.clientX; sy = e.clientY; spx = self.panX; spy = self.panY;
+    });
+    window.addEventListener('pointermove', e => {
+      if(!down) return;
+      const dx = e.clientX-sx, dy = e.clientY-sy;
+      if(!dragged && Math.hypot(dx,dy) < 4) return;
+      dragged = true; wrap.classList.add('panning');
+      self.panX = spx + dx*PAN_SPEED;
+      self.panY = spy + dy*PAN_SPEED;
+      self.apply();
+      e.preventDefault();
+    });
+    window.addEventListener('pointerup', () => { down = false; wrap.classList.remove('panning'); });
+    wrap.addEventListener('click', e => { if(dragged){ e.stopPropagation(); dragged = false; } }, true);
+  }
+}
+
+class Diagram {
+  constructor(model, onNodeClick){
+    this.model = model;
+    this.onNodeClick = onNodeClick;
+    this.canvas = document.getElementById('canvas');
+    this.svg = document.getElementById('edges');
+    this.nodeEls = {};
+    this.hidden = new Set();
+
+    this.canvas.style.width = model.width+'px';
+    this.canvas.style.height = model.height+'px';
+    this._buildNodes();
+    this._initEdges();
+    this.drawEdges();
+  }
+
+  _sub(n){
+    if(n.resource_type==='source')
+      return (n.freshness_status==='warn'||n.freshness_status==='error') ? 'source · stale' : 'source';
+    let sub = n.materialization || 'model';
+    if(n.status==='error') sub += ' · failed';
+    else if(n.failure_class==='casualty') sub += ' · skipped';
+    else if(n.test_status==='fail'||n.test_status==='error') sub += ' · test failed';
+    return sub;
+  }
+
+  _buildNodes(){
+    this.model.graph.nodes.forEach(n => {
+      const p = this.model.pos[n.id];
+      const st = STATUS[nodeState(n, this.model.isTestRun)];
+      const el = document.createElement('div');
+      el.className = 'node '+st.node;
+      el.style.left = p.x+'px';
+      el.style.top = p.y+'px';
+      setHTML(el, html`<span class="ico">${st.icon}</span><span class="nm">${n.name}</span><span class="sub">${this._sub(n)}</span>`);
+      el.onclick = () => this.onNodeClick(n.id);
+      this.canvas.appendChild(el);
+      this.nodeEls[n.id] = el;
+    });
+  }
+
+  _initEdges(){
+    const w = this.model.width, h = this.model.height;
+    this.svg.setAttribute('width', w);
+    this.svg.setAttribute('height', h);
+    this.svg.innerHTML = `<defs><filter id="glow" filterUnits="userSpaceOnUse" x="0" y="0" width="${w}" height="${h}"><feDropShadow dx="0" dy="0" stdDeviation="2.2" flood-color="#f2853c" flood-opacity="0.55"/></filter></defs>`;
+  }
+
+  drawEdges(){
+    [...this.svg.querySelectorAll('path')].forEach(p => p.remove());
+    this.model.graph.edges.forEach(e => {
+      const a = this.model.pos[e.source], b = this.model.pos[e.target];
+      if(!a || !b) return;
+      if(this.hidden.has(e.source) || this.hidden.has(e.target)) return;
+      const x1 = a.x+NODE_W, y1 = a.y+NODE_H/2, x2 = b.x, y2 = b.y+NODE_H/2, mx = (x1+x2)/2;
+      const glow = this.model.cascade.has(e.source) && this.model.cascade.has(e.target);
+      const intoFail = this.model.byId[e.target] && this.model.byId[e.target].failure_class==='root_cause';
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d', `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
+      path.setAttribute('fill','none');
+      if(glow){
+        path.setAttribute('stroke','#f2853c');
+        path.setAttribute('stroke-width','2.6');
+        path.setAttribute('filter','url(#glow)');
+      } else if(intoFail){
+        path.setAttribute('stroke','rgba(242,85,90,0.5)');
+        path.setAttribute('stroke-width','1.6');
+      } else {
+        path.setAttribute('stroke','rgba(255,255,255,0.09)');
+        path.setAttribute('stroke-width','1.4');
+      }
+      this.svg.appendChild(path);
+    });
+  }
+
+  highlight(id){
+    Object.values(this.nodeEls).forEach(e => e.classList.remove('sel'));
+    if(this.nodeEls[id]) this.nodeEls[id].classList.add('sel');
+  }
+
+  clearHighlight(){
+    Object.values(this.nodeEls).forEach(e => e.classList.remove('sel'));
+  }
+
+  setPathOnly(on){
+    this.hidden = new Set();
+    if(on){
+      this.model.graph.nodes.forEach(n => {
+        if(this.model.cascade.has(n.id)) return;
+        const keep = (this.model.childrenOf[n.id] || []).some(c => this.model.cascade.has(c)) && n.resource_type==='source';
+        if(!keep) this.hidden.add(n.id);
+      });
+    }
+    this.model.graph.nodes.forEach(n => this.nodeEls[n.id].style.display = this.hidden.has(n.id) ? 'none' : 'flex');
+    this.drawEdges();
+  }
+}
+
+class Sidebar {
+  constructor(model, onItemClick){
+    this.model = model;
+    this.el = document.getElementById('side');
+    this._build();
+    this.el.addEventListener('click', e => {
+      const item = e.target.closest('[data-id]');
+      if(item) onItemClick(item.dataset.id);
+    });
+  }
+
+  _item(id, nm, sub, cls){
+    return html`<div class="fail-item ${raw(cls||'')}" data-id="${id}"><div class="nm">${nm}</div><div class="sub">${sub}</div></div>`;
+  }
+
+  _testSection(parts, title, pred, cls){
+    const groups = [];
+    this.model.graph.nodes.forEach(n => {
+      if(n.status==='error') return;  // an errored model is listed under Model failures, not here
+      const tests = (n.tests||[]).filter(pred);
+      if(tests.length) groups.push({node:n, tests});
+    });
+    if(!groups.length) return;
+    parts.push(html`<div class="side-h" style="margin-top:14px">${title}</div>`);
+    groups.forEach(({node, tests}) => {
+      if(tests.length === 1){
+        parts.push(this._item(node.id, testLabel(tests[0], node.name), node.name+' · '+(tests[0].failures||0)+' rows', cls));
+      } else {
+        const rows = tests.reduce((s,t) => s + (t.failures||0), 0);
+        parts.push(this._item(node.id, node.name, plural(tests.length,'test')+' · '+rows+' rows', cls));
+      }
+    });
+  }
+
+  _build(){
+    const g = this.model.graph, parts = [];
+
+    const modelFails = g.nodes.filter(n => n.resource_type==='model' && n.status==='error');
+    if(modelFails.length){
+      parts.push(html`<div class="side-h">Model failures</div>`);
+      modelFails.forEach(n => parts.push(this._item(n.id, n.name, 'errored · skipped '+this.model.blast(n.id)+' downstream')));
+    }
+
+    this._testSection(parts, 'Failed tests', t => t.status==='fail'||t.status==='error');
+    this._testSection(parts, 'Test warnings', t => t.status==='warn', 'warnish');
+
+    const stale = g.nodes.filter(n => n.resource_type==='source' && (n.freshness_status==='warn'||n.freshness_status==='error'));
+    if(stale.length){
+      parts.push(html`<div class="side-h" style="margin-top:14px">Stale sources</div>`);
+      stale.forEach(n => parts.push(this._item(n.id, n.name, n.freshness_status+' · '+Math.round((n.freshness_age_seconds||0)/3600)+'h old', 'warnish')));
+    }
+
+    setHTML(this.el, parts.length ? html`${parts}` : html`<div class="hsub">No failures — all green.</div>`);
+  }
+}
+
+class Drawer {
+  constructor(model, onClose){
+    this.model = model;
+    this.el = document.getElementById('drawer');
+    this.el.addEventListener('click', e => { if(e.target.closest('.x')) onClose(); });
+  }
+
+  select(n){
+    this.el.classList.add('open');
+    setHTML(this.el, this._html(n));
+  }
+
+  close(){ this.el.classList.remove('open'); }
+
+  _cols(n){
+    if(!n.columns || !n.columns.length) return '';
+    return html`<div class="cols-h"><span>Columns</span><span>${n.columns.length}</span></div>${
+      n.columns.map(c => html`<div class="col-row"><span class="cname">${c.name}</span><span class="ctype">${c.data_type||''}</span></div>`)}`;
+  }
+
+  _source(n){
+    return html`<div class="block ${raw(n.freshness_status==='pass' ? '' : 'block-cas')}"><div class="block-lbl" style="color:#e8b34a">Freshness</div>
+        <div style="font-size:11px;color:#c3c6cd">${(n.freshness_status||'unknown')} · loaded ~${Math.round((n.freshness_age_seconds||0)/3600)}h ago</div></div>${this._cols(n)}`;
+  }
+
+  _success(n){
+    const rel = relTime(n.completed_at), ts = fmtTime(n.completed_at);
+    return html`<div class="block block-ok"><div class="built">
+        <div><div class="block-lbl" style="color:#3ecf8e">● Last built</div>${rel ? html`<div class="when">${rel}</div>` : ''}</div>${ts ? html`<div class="ts">${ts}</div>` : ''}</div></div>
+      <div class="tiles">
+        <div class="tile"><div class="k">Materialization</div><div class="v">${n.materialization||'—'}</div></div>
+        <div class="tile"><div class="k">Exec time</div><div class="v">${n.execution_time!=null ? n.execution_time.toFixed(2)+'s' : '—'}</div></div>
+      </div>${this._cols(n)}`;
+  }
+
+  _failure(n){
+    const parts = [];
+    if(n.status==='error' && n.message)
+      parts.push(html`<div class="block block-err"><div class="block-lbl" style="color:#f2555a">Compilation error</div><pre>${n.message}</pre></div>`);
+    if(n.status==='error')
+      parts.push(html`<div class="block block-root"><div class="block-lbl" style="color:#ff9d7a">Root cause <span class="badge" style="background:rgba(255,157,122,0.16);color:#ff9d7a">computed</span></div>
+        <div style="font-size:11px;color:#c3c6cd">This model ran and errored — its parents were fine, so it's the origin of the failure. Skipped ${this.model.blast(n.id)} downstream model(s).</div></div>`);
+    else if(n.failure_class==='casualty')
+      parts.push(html`<div class="block block-cas"><div class="block-lbl" style="color:#f0a24e">Casualty</div>
+        <div style="font-size:11px;color:#c3c6cd">Skipped because <span class="mono">${(this.model.byId[n.blamed_root_cause]||{}).name || n.blamed_root_cause}</span> upstream failed.</div></div>`);
+    else if(n.test_status==='fail'||n.test_status==='error'){
+      const gated = this.model.blast(n.id);
+      parts.push(html`<div class="block block-err"><div class="block-lbl" style="color:#f2555a">Failed test</div>
+        <div style="font-size:11px;color:#c3c6cd">This model built successfully, but a data test on it failed${
+          raw(gated ? ` and gates ${gated} downstream model(s)` : ` (nothing downstream depends on it)`)}.</div></div>`);
+    }
+    parts.push(this._cols(n));
+    return html`${parts}`;
+  }
+
+  _tests(n){
+    if(!n.tests || !n.tests.length) return '';
+    return html`<div class="block" style="border:1px solid rgba(255,255,255,0.08)"><div class="block-lbl" style="color:#9aa0ab">Tests</div>${
+      n.tests.map(t => {
+        const b = t.status==='fail'||t.status==='error' ? 'b-fail' : t.status==='warn' ? 'b-warn' : 'b-pass';
+        return html`<div class="tests-row"><span class="tname">${testLabel(t, n.name)}</span><span class="badge ${raw(b)}">${t.status}${raw(t.failures ? (' · '+t.failures) : '')}</span></div>`;
+      })}</div>`;
+  }
+
+  _ask(n){
+    const hasFailure = n.resource_type!=='source' && (n.status==='error'||n.test_status==='fail'||n.test_status==='error');
+    if(!hasFailure) return '';
+    return html`<div class="ask"><div class="ask-lbl">✦ Ask Claude · this node</div>
+      <div class="ask-box"><input placeholder="Ask about this failure…" disabled><span style="color:#ff9d7a">↑</span></div></div>`;
+  }
+
+  _body(n){
+    if(n.resource_type==='source') return this._source(n);
+    const testFailed = (n.test_status==='fail'||n.test_status==='error');
+    const isSuccess = n.status!=='error' && n.failure_class!=='casualty' && !testFailed;
+    return html`${isSuccess ? this._success(n) : this._failure(n)}${this._tests(n)}`;
+  }
+
+  _html(n){
+    const st = STATUS[badgeState(n)];
+    const typeLabel = n.resource_type==='source' ? 'Source' : ('Model'+(n.materialization ? ' · '+n.materialization : ''));
+    return html`<div class="d-head"><span class="badge b-lg ${raw(st.badge[1])}">${st.badge[0]}</span><span class="d-type">${typeLabel}</span><span class="x">×</span></div>
+      <div class="d-title">${n.name}</div>${n.path ? html`<div class="d-path">${n.path}</div>` : ''}${this._body(n)}${this._ask(n)}`;
+  }
+}
+
+class App {
+  constructor(){
+    this.model = new GraphModel(GRAPH);
+    this.viewport = new Viewport(this.model);
+    this.diagram = new Diagram(this.model, id => this.goTo(id));
+    this.sidebar = new Sidebar(this.model, id => this.goTo(id));
+    this.drawer = new Drawer(this.model, () => this.close());
+    this._buildHeader();
+    this._setupToolbar();
+    this.viewport.apply();
+    this._selectFirstFailure();
+  }
+
+  _open(id){
+    this.diagram.highlight(id);
+    this.drawer.select(this.model.byId[id]);
+  }
+
+  goTo(id){
+    this.viewport.panToNode(id);
+    this._open(id);
+  }
+
+  close(){
+    this.drawer.close();
+    this.diagram.clearHighlight();
+  }
+
+  _buildHeader(){
+    const s = this.model.graph.summary;
+    document.getElementById('hsub').textContent =
+      (this.model.graph.command||'run')+' · '+s.models+' models · '+s.sources+' sources';
+
+    const chips = [];
+    const erroredCount = this.model.graph.nodes.filter(n => n.resource_type==='model' && n.status==='error').length;
+    if(!this.model.isTestRun){
+      if(erroredCount) chips.push([STATUS.failed.color, plural(erroredCount,'model')+' failed']);
+      const cas = s.by_failure_class.casualty || 0;
+      if(cas) chips.push([STATUS.skipped.color, plural(cas,'model')+' skipped']);
+    }
+    if(s.failing_tests) chips.push([STATUS.failed.color, plural(s.failing_tests,'test')+' failed']);
+    if(s.stale_sources) chips.push([STATUS.stale.color, plural(s.stale_sources,'source')+' stale']);
+    if(!chips.length) chips.push([STATUS.passed.color, 'all passed']);
+    setHTML(document.getElementById('chips'),
+      html`${chips.map(c => html`<span class="chip"><span class="dot" style="background:${raw(c[0])}"></span><span style="color:${raw(c[0])}">${c[1]}</span></span>`)}`);
+
+    const legend = this.model.isTestRun
+      ? [
+          [STATUS.passed.color, 'test passed'],
+          [STATUS.failed.color, 'test failed'],
+          [STATUS.warn.color, 'warning'],
+        ]
+      : [
+          [STATUS.passed.color, 'model passed'],
+          [STATUS.failed.color, 'model failed'],
+          [STATUS.skipped.color, 'skipped'],
+          [STATUS.warn.color, 'warning'],
+        ];
+    setHTML(document.getElementById('legend'),
+      html`${legend.map(c => html`<span class="chip" style="font-size:10px"><span class="dot" style="background:${raw(c[0])}"></span><span>${c[1]}</span></span>`)}`);
+  }
+
+  _setupToolbar(){
+    const pathBtn = document.getElementById('pathBtn');
+    let pathOn = false;
+    pathBtn.onclick = () => {
+      pathOn = !pathOn;
+      pathBtn.classList.toggle('on', pathOn);
+      pathBtn.innerHTML = (pathOn ? '◉' : '◯')+' Failure paths only';
+      this.diagram.setPathOnly(pathOn);
+    };
+
+    const focusTargets = this.model.isTestRun
+      ? this.model.graph.nodes.filter(n => n.test_status==='fail'||n.test_status==='error').map(n => n.id)
+      : this.model.rootCauses;
+    let focusI = 0;
+    document.getElementById('focusIdx').textContent = focusTargets.length ? ('1 / '+focusTargets.length) : '0';
+    document.getElementById('focusBtn').onclick = () => {
+      if(!focusTargets.length) return;
+      focusI = (focusI+1) % focusTargets.length;
+      document.getElementById('focusIdx').textContent = (focusI+1)+' / '+focusTargets.length;
+      this.goTo(focusTargets[focusI]);
+    };
+  }
+
+  _selectFirstFailure(){
+    const g = this.model.graph;
+    const first = g.nodes.find(n => n.status==='error')
+      || g.nodes.find(n => n.test_status==='fail'||n.test_status==='error')
+      || g.nodes.find(n => n.resource_type==='source' && (n.freshness_status==='warn'||n.freshness_status==='error'));
+    if(first) this._open(first.id);
+  }
+}
+
+new App();
+
+})();
+</script>
+</body>
+</html>

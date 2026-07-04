@@ -69,3 +69,18 @@ def test_cli_test_example_is_a_test_run(tmp_path):
     graph = json.loads(html[start:html.index(";\n", start)])
     assert graph["command"] == "test"
     assert graph["summary"]["failing_tests"] == 3
+
+
+def test_cli_run_example_is_a_run_failure(tmp_path):
+    out = tmp_path / "run-lineage.html"
+    code = main(["--example-run", "--out", str(out), "--no-open"])
+    assert code == 0
+    html = out.read_text()
+    marker = "const GRAPH = "
+    start = html.index(marker) + len(marker)
+    graph = json.loads(html[start:html.index(";\n", start)])
+    assert graph["command"] == "run"
+    # a model errored and gated its downstream; no tests ran
+    assert graph["summary"]["root_causes"] == ["model.jaffle_shop.stg_orders"]
+    assert graph["summary"]["by_failure_class"].get("casualty") == 5
+    assert graph["summary"]["failing_tests"] == 0

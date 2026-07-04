@@ -1,14 +1,3 @@
-"""dbt-debug CLI — the skill's entry point.
-
-Resolve dbt artifacts (local target/, explicit files, or the bundled example),
-run the classifier engine, and render a self-contained lineage HTML you open in
-the browser.
-
-    python -m app.cli --example
-    python -m app.cli --target path/to/target
-    python -m app.cli --manifest m.json --run-results rr.json [--sources s.json]
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -22,11 +11,14 @@ from .render import render_html
 _FIXTURES = Path(__file__).resolve().parents[2] / "fixtures"
 _BUNDLED_EXAMPLE = _FIXTURES / "jaffle_shop_demo"
 _BUNDLED_TEST_EXAMPLE = _FIXTURES / "jaffle_shop_test"
+_BUNDLED_RUN_EXAMPLE = _FIXTURES / "jaffle_shop_run"
 
 
 def build_source(args: argparse.Namespace):
     if args.example_test:
         return LocalTargetSource(_BUNDLED_TEST_EXAMPLE)
+    if args.example_run:
+        return LocalTargetSource(_BUNDLED_RUN_EXAMPLE)
     if args.example:
         return LocalTargetSource(_BUNDLED_EXAMPLE)
     if args.manifest and args.run_results:
@@ -50,6 +42,7 @@ def main(argv=None) -> int:
     p.add_argument("--sources", help="path to sources.json (freshness), optional")
     p.add_argument("--example", action="store_true", help="bundled build example (stg_payments cascade)")
     p.add_argument("--example-test", dest="example_test", action="store_true", help="bundled dbt test example (failing tests)")
+    p.add_argument("--example-run", dest="example_run", action="store_true", help="bundled dbt run example (stg_orders failure cascade)")
     p.add_argument("--out", help="output HTML path (default: ./dbt-debug-lineage.html)")
     p.add_argument("--no-open", action="store_true", help="don't open the browser")
     args = p.parse_args(argv)
