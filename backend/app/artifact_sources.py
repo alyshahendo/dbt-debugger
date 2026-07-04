@@ -56,22 +56,6 @@ class DirectFilesSource:
         )
 
 
-@dataclass
-class DbtCloudSource:
-    """Stub. Open before building: run-selection (explicit run id vs latest
-    failed run of a job) and credential handling."""
-
-    account_id: str
-    run_id: Optional[str] = None
-    job_id: Optional[str] = None
-    token: Optional[str] = None
-
-    def resolve(self) -> RawArtifacts:
-        raise NotImplementedError(
-            "dbt Cloud resolver is not implemented yet — use local or direct sources."
-        )
-
-
 def resolve_source(
     *,
     target: Optional[str] = None,
