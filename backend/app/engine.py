@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from .classifier import classify
 from .parser import ParsedArtifacts, ParsedModel, parse_artifacts
+
+if TYPE_CHECKING:
+    from .artifact_sources import ArtifactSource
 
 
 _LANE_SOURCES, _LANE_STAGING, _LANE_INTERMEDIATE, _LANE_MARTS, _LANE_REPORTING = range(5)
@@ -52,8 +55,6 @@ def derive_lanes(models: dict[str, ParsedModel]) -> dict[str, int]:
                 max(lanes[uid], max(lanes[p] for p in parents) + 1), _LANE_REPORTING
             )
     return lanes
-
-
 
 
 def build_graph(artifacts: ParsedArtifacts) -> dict:
@@ -180,8 +181,6 @@ def _summarize(nodes: list[dict]) -> dict:
     }
 
 
-
-
 def analyze(source: "ArtifactSource") -> dict:
     raw = source.resolve()
     artifacts = parse_artifacts(raw.manifest, raw.run_results, raw.sources_results)
@@ -192,7 +191,3 @@ def analyze_target(target_dir: str | Path) -> dict:
     from .artifact_sources import LocalTargetSource
 
     return analyze(LocalTargetSource(target_dir))
-
-
-if False:
-    from .artifact_sources import ArtifactSource
