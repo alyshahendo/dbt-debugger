@@ -24,7 +24,10 @@ It reads `manifest.json`, `run_results.json`, and optionally `sources.json` read
 
 ### dbt Core or dbt Cloud?
 
-Both. Those artifacts are the same format whether they come from dbt Core or dbt Cloud. With dbt Core they land in your `target/` directory after a run. With dbt Cloud, download the run's artifacts from the run page (or the Admin API) and point the skill at them. An automated dbt Cloud fetch is on the [roadmap](#️-roadmap); for now you supply the files.
+The artifacts (`manifest.json`, `run_results.json`) are the same format either way, so both work. The difference is how you get them to the tool:
+
+- **dbt Core:** they are already in your `target/` directory after a run, so point the skill straight at it.
+- **dbt Cloud:** you download the run's artifacts first (from the run page or the Admin API), then point the skill at the downloaded files. There is no automatic fetch today; an API resolver is on the [roadmap](#️-roadmap).
 
 ## 📦 Installation
 
@@ -84,7 +87,7 @@ npm run build     # writes backend/dbt_debug/web/index.html
 
 ## 🗺️ Roadmap
 
-- dbt Cloud artifact resolver (the `DbtCloudSource` contract is stubbed in `artifact_sources.py`), so you can point at a Cloud run without downloading files.
+- dbt Cloud artifact resolver, so you can point at a Cloud run without downloading the files yourself. (The `ArtifactSource` protocol in `artifact_sources.py` is the seam a resolver would plug into.)
 - Shakeout against real-world dbt projects (current test coverage is against synthetic fixtures).
 
 ## 📄 License
