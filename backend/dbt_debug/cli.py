@@ -60,9 +60,17 @@ def main(argv=None) -> int:
     p.add_argument("--example-test", dest="example_test", action="store_true", help="bundled dbt test example (failing tests)")
     p.add_argument("--example-run", dest="example_run", action="store_true", help="bundled dbt run example (stg_orders failure cascade)")
     p.add_argument("--analysis", help="path to a JSON map of node id/name -> Claude's explanation, shown inline")
+    p.add_argument("--json", action="store_true", help="print the failure graph as JSON to stdout instead of rendering HTML")
     p.add_argument("--out", help="output HTML path (default: ./dbt-debug-lineage.html)")
     p.add_argument("--no-open", action="store_true", help="don't open the browser")
     args = p.parse_args(argv)
+
+    if args.json:
+        graph = analyze(build_source(args))
+        if args.analysis:
+            apply_analysis(graph, args.analysis)
+        print(json.dumps(graph, indent=2))
+        return 0
 
     out = run(args)
     print(f"lineage written to {out}")
