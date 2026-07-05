@@ -23,12 +23,17 @@ function Columns({ node }: { node: GraphNode }) {
 }
 
 function SourceBody({ node }: { node: GraphNode }) {
+  const fresh = node.freshness_status;
+  const isStale = fresh === 'warn' || fresh === 'error';
+  const known = fresh === 'pass' || isStale;
   return (
     <>
-      <div class={`block ${node.freshness_status === 'pass' ? '' : 'block-cas'}`}>
-        <div class="block-lbl" style="color:#e8b34a">Freshness</div>
+      <div class={`block ${isStale ? 'block-cas' : ''}`}>
+        <div class="block-lbl" style={{ color: isStale ? '#e8b34a' : '#9aa0ab' }}>Freshness</div>
         <div style="font-size:11px;color:#c3c6cd">
-          {`${node.freshness_status || 'unknown'} · loaded ~${Math.round((node.freshness_age_seconds || 0) / 3600)}h ago`}
+          {known
+            ? `${fresh} · loaded ~${Math.round((node.freshness_age_seconds || 0) / 3600)}h ago`
+            : 'not checked'}
         </div>
       </div>
       <Columns node={node} />
