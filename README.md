@@ -66,6 +66,7 @@ Each run writes `dbt-debug-lineage.html` and opens it in your browser.
 | `--manifest / --run-results / --sources` | Explicit artifact file paths |
 | `--example`, `--example-test`, `--example-run` | Render a bundled fixture |
 | `--analysis <json>` | Map of node id/name → explanation, shown inline in the drawer |
+| `--json` | Print the failure graph as JSON to stdout instead of rendering HTML |
 | `--out <path>` | Output HTML path (default `./dbt-debug-lineage.html`) |
 | `--no-open` | Don't open the browser automatically |
 
@@ -83,12 +84,24 @@ The repo ships a skill at `.claude/skills/dbt-debugger/`. When you're working in
 project inside Claude Code and a run fails (or you ask "why did my build fail / what
 actually broke"), Claude picks up the skill and:
 
-1. runs the analyzer to find the root cause(s) and blast radius,
+1. inspects the failure graph (`dbt-debug --json`) to find the root cause(s) and blast radius,
 2. reads each failing model's SQL and dbt error and works out *why* it broke,
 3. re-renders the map with that analysis embedded (via `--analysis`), and
 4. explains it in the terminal — always pointing you at the real culprit, never a casualty.
 
 So you get both the visual map and a plain-language fix, without leaving the terminal.
+
+To use it in **any** dbt project (not just this repo), install it globally — put the
+`dbt-debug` command on your PATH and copy the skill into your personal skills dir:
+
+```bash
+pipx install ./backend
+cp -r .claude/skills/dbt-debugger ~/.claude/skills/dbt-debugger
+```
+
+The skill talks to `dbt-debug` only through its CLI, so nothing depends on this repo's
+paths. (Under a global install the bundled `--example*` fixtures aren't available —
+point it at your project's real `target/` instead.)
 
 ## 🤝 Contributing
 
