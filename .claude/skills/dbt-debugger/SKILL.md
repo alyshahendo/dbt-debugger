@@ -13,7 +13,7 @@ description: >-
 # dbt-debugger
 
 Turn a failed dbt run into (1) a root-cause diagnosis and (2) a self-contained
-interactive lineage map — with your analysis of each root cause baked into the
+interactive lineage map, with your analysis of each root cause baked into the
 map's detail drawer. Runs read-only over the artifacts dbt already produces;
 never touches the warehouse.
 
@@ -32,49 +32,49 @@ source checkout `pipx install ./backend`). All steps use only that command.
 The artifacts are usually in `./target/` after a dbt run. If unsure, ask the
 user or look for `target/manifest.json` + `target/run_results.json`.
 
-## Step 1 — inspect the failure graph
+## Step 1: inspect the failure graph
 
 ```bash
 dbt-debug --target ./target --json > /tmp/dbt-graph.json
 ```
 
 (Or `--manifest <m.json> --run-results <rr.json> [--sources <s.json>]`.) Read
-`/tmp/dbt-graph.json` and find the root causes — nodes with
+`/tmp/dbt-graph.json` and find the root causes, the nodes with
 `failure_class == "root_cause"`. For each, note its `name`, `path`, `status`,
 `message`, and how many nodes list it as their `blamed_root_cause` (the blast
 radius). Also note the failing tests (a model's `tests[]` with status
 `fail`/`error`), including each test's `compiled_sql`.
 
-## Step 2 — analyze each root cause
+## Step 2: analyze each root cause
 
 For every root cause: read its SQL file (`path`), and using the dbt error
 `message` (or the failing test), work out *why* it failed and *how to fix it*.
-Write a concise explanation (2–4 sentences — it renders in a narrow drawer) into
+Write a concise explanation (2 to 4 sentences, it renders in a narrow drawer) into
 an analysis map keyed by model name:
 
 ```json
 {
   "stg_payments": "Fails because the raw.payments source has no `payment_method` column, which the SELECT references. Fix: rename it to the real column, or add it to the source. Gated 5 downstream models.",
-  "dim_products": "The not_null test on product_id failed (7 rows) — some products have a null id, likely an unmatched join in dim_products.sql. Investigate the join or filter the orphans."
+  "dim_products": "The not_null test on product_id failed (7 rows); some products have a null id, likely an unmatched join in dim_products.sql. Investigate the join or filter the orphans."
 }
 ```
 
 Save it to `/tmp/dbt-analysis.json`.
 
-## Step 3 — render with your analysis embedded
+## Step 3: render with your analysis embedded
 
 ```bash
 dbt-debug --target ./target --analysis /tmp/dbt-analysis.json --out dbt-debug-lineage.html
 ```
 
-Each analyzed node's drawer now shows a **"✦ Claude's analysis"** block inline —
+Each analyzed node's drawer now shows a **"✦ Claude's analysis"** block inline, so
 the user reads the diagnosis right in the map.
 
 Then, in the terminal, also:
 - Name each root cause and its blast radius.
 - Call out the **casualties** (`failure_class == "casualty"`) and tell the user
-  NOT to chase them — fixing the root cause unblocks them.
-- For a failing test, point them at its `compiled_sql` — running it returns the
+  NOT to chase them; fixing the root cause unblocks them.
+- For a failing test, point them at its `compiled_sql`; running it returns the
   offending rows.
 - Offer to apply the proposed fix.
 
@@ -87,4 +87,4 @@ Then, in the terminal, also:
 - In `dbt build`, a failing **test** gates the models below it, so the test's
   model is treated as a blocking root cause.
 
-Never tell the user to fix a casualty — that's the whole point of this tool.
+Never tell the user to fix a casualty; that is the whole point of this tool.

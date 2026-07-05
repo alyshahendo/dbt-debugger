@@ -1,31 +1,30 @@
 # dbt-debugger
 
-> Turn a failed `dbt` run into an interactive lineage map that tells you **what actually broke** — not just what got skipped.
+> Turn a failed `dbt` run into an interactive lineage map that tells you **what actually broke**, not just what got skipped.
+
+A Claude Code skill. When a dbt run fails, Claude finds the model that actually broke (versus the ones that were only skipped downstream), explains why, and renders an interactive map of the blast radius.
 
 ## ✨ Highlights
 
-- 🎯 **Finds the real culprit** — classifies every node in a failed run as a **root cause** or a downstream **casualty**, so you fix the one thing that matters.
-- 🗺️ **Interactive lineage view** — models laid out in lanes (sources → staging → intermediate → marts → reporting) with a glowing failure cascade, a click-to-open detail drawer, a "failure paths only" toggle, and a stepper that walks you through each root cause.
-- ✅ **Tests & freshness in context** — rolls up dbt test results per model, shows source freshness when `sources.json` is present, and lets you expand a failing test's **compiled query** (copy it to pull the failing rows).
-- 🤖 **Claude Code skill** — run it inside Claude Code and it diagnoses the failure for you: reads the SQL + dbt error, explains each root cause, and embeds that analysis directly in the map.
-- 📄 **One self-contained HTML file** — no server, no database, nothing to host. Easy to share, attach to an incident, or drop in a PR.
-- 🧪 **Bundled examples** — try it in one command without a dbt project of your own.
+- 🎯 **Finds the real culprit.** Classifies every node in a failed run as a **root cause** or a downstream **casualty**, so you fix the one thing that matters.
+- 🤖 **Claude explains it.** Claude reads the failing model's SQL and the dbt error, works out why it broke, embeds that analysis in the map, and walks you through the fix in the terminal.
+- 🗺️ **Interactive lineage view.** Models laid out in lanes (sources, staging, intermediate, marts, reporting) with a glowing failure cascade, a click-to-open detail drawer, a "failure paths only" toggle, and a stepper through each root cause.
+- ✅ **Tests & freshness in context.** Rolls up dbt test results per model, shows source freshness when `sources.json` is present, and lets you expand a failing test's **compiled query** (copy it to pull the failing rows).
+- 📄 **One self-contained HTML file.** No server, no database, nothing to host. Easy to share, attach to an incident, or drop in a PR.
 
-## 🔎 Overview
+## 🔎 How it decides what broke
 
-When a `dbt run` or `dbt build` fails, `run_results.json` hands you a flat list of errors and skips. The hard part is separating the *one* model that genuinely failed from the dozens of downstream models dbt skipped **because** of it. dbt-debugger reads your run artifacts, walks the DAG, and renders a single interactive HTML page that makes the blast radius obvious at a glance.
+When a `dbt run` or `dbt build` fails, `run_results.json` hands you a flat list of errors and skips. The hard part is separating the *one* model that genuinely failed from the dozens of downstream models dbt skipped **because** of it. The classifier leans on dbt's own execution semantics rather than guessing:
 
-### How it decides what broke
-
-The classifier leans on dbt's own execution semantics rather than guessing:
-
-- `status=error` means the node actually ran (its parents were fine) → **root cause**.
-- `status=skipped` means dbt blocked it because something upstream failed → **casualty**, attributed to its nearest failed ancestor.
+- `status=error` means the node actually ran (its parents were fine), so it is a **root cause**.
+- `status=skipped` means dbt blocked it because something upstream failed, so it is a **casualty**, attributed to its nearest failed ancestor.
 - In `dbt build`, a failed test gates the models below it, so its attached model is treated as the blocking root cause.
 
-### Where it fits
+It reads `manifest.json`, `run_results.json`, and optionally `sources.json` read-only. It never touches your warehouse or your project.
 
-dbt-debugger is a standalone Python CLI (and Claude Code skill) that works with the artifacts any dbt Core or dbt Cloud run already produces — `manifest.json`, `run_results.json`, and optionally `sources.json`. It reads them read-only; it never touches your warehouse or your project. Built by [Alysha Henderson](https://github.com/alyshahendo).
+### dbt Core or dbt Cloud?
+
+Both. Those artifacts are the same format whether they come from dbt Core or dbt Cloud. With dbt Core they land in your `target/` directory after a run. With dbt Cloud, download the run's artifacts from the run page (or the Admin API) and point the skill at them. An automated dbt Cloud fetch is on the [roadmap](#️-roadmap); for now you supply the files.
 
 ## 📦 Installation
 
@@ -37,73 +36,32 @@ cd dbt-debugger
 ./install.sh
 ```
 
-`install.sh` puts the `dbt-debug` command on your PATH and installs the Claude Code
-skill — it asks whether you want the skill **global** (`~/.claude/skills`, available in
-every project) or scoped to **one project**. (Node is **not** required — the UI ships
-prebuilt; it's only needed to change the frontend, see [Contributing](#-contributing).)
+`install.sh` installs the engine and the Claude Code skill. It asks whether you want the skill **global** (`~/.claude/skills`, available in every project) or scoped to **one project**. Node is not required; the UI ships prebuilt. It is only needed to change the frontend (see [Contributing](#-contributing)).
 
-## 🚀 Usage
+## 🤖 Using it
 
-Try it right now against a bundled example — no dbt project required:
+Install the skill globally, then work in any dbt project. When a run fails, or you ask Claude "why did my build fail" or "what actually broke", Claude picks up the skill and:
+
+1. inspects the failure graph to find the root cause(s) and blast radius,
+2. reads each failing model's SQL and dbt error and works out why it broke,
+3. renders the map with that analysis embedded, and
+4. explains it in the terminal, always pointing you at the real culprit, never a casualty.
+
+You get both the visual map and a plain-language fix, without leaving the terminal.
+
+### Under the hood
+
+The skill drives a small command, `dbt-debug`, that does the read-only rendering. You rarely call it yourself, but you can if you only want the map (for example, to attach to a CI build). On its own it does not use Claude; the analysis appears only when the skill supplies it.
 
 ```bash
-dbt-debug --example        # a stg_payments build-failure cascade
-dbt-debug --example-test   # a failing dbt test example
-dbt-debug --example-run    # a dbt run failure cascade
+dbt-debug --target path/to/target                  # render the map from a target/ dir
+dbt-debug --manifest m.json --run-results rr.json  # or explicit artifact files
+dbt-debug --json                                   # print the failure graph as JSON
 ```
-
-Point it at your own run:
-
-```bash
-# Auto-detects ./target, or pass one explicitly
-dbt-debug --target path/to/target
-
-# ...or pass explicit artifact files
-dbt-debug --manifest manifest.json --run-results run_results.json --sources sources.json
-```
-
-Each run writes `dbt-debug-lineage.html` and opens it in your browser.
-
-| Flag | Description |
-| --- | --- |
-| `--target <dir>` | Path to a dbt `target/` directory |
-| `--manifest / --run-results / --sources` | Explicit artifact file paths |
-| `--example`, `--example-test`, `--example-run` | Render a bundled fixture |
-| `--analysis <json>` | Map of node id/name → explanation, shown inline in the drawer |
-| `--json` | Print the failure graph as JSON to stdout instead of rendering HTML |
-| `--out <path>` | Output HTML path (default `./dbt-debug-lineage.html`) |
-| `--no-open` | Don't open the browser automatically |
-
-Prefer to work with the graph directly? Use it as a library:
-
-```python
-from dbt_debug.engine import analyze_target
-
-graph = analyze_target("path/to/target")   # -> JSON-able failure graph
-```
-
-## 🤖 As a Claude Code skill
-
-The repo ships a skill at `.claude/skills/dbt-debugger/`. When you're working in a dbt
-project inside Claude Code and a run fails (or you ask "why did my build fail / what
-actually broke"), Claude picks up the skill and:
-
-1. inspects the failure graph (`dbt-debug --json`) to find the root cause(s) and blast radius,
-2. reads each failing model's SQL and dbt error and works out *why* it broke,
-3. re-renders the map with that analysis embedded (via `--analysis`), and
-4. explains it in the terminal — always pointing you at the real culprit, never a casualty.
-
-So you get both the visual map and a plain-language fix, without leaving the terminal.
-
-To use it in **any** dbt project, run `./install.sh` and choose the **global** skill
-option — that puts `dbt-debug` on your PATH and the skill in `~/.claude/skills`. The
-skill talks to `dbt-debug` only through its CLI, so nothing depends on this repo's paths.
-(Under a global install the bundled `--example*` fixtures aren't available — point it at
-your project's real `target/` instead.)
 
 ## 🤝 Contributing
 
-Contributions, ideas, and bug reports are welcome — open an [issue](https://github.com/alyshahendo/dbt-debugger/issues) to start a discussion before substantial changes, and keep pull requests focused.
+Contributions, ideas, and bug reports are welcome. Open an [issue](https://github.com/alyshahendo/dbt-debugger/issues) to start a discussion before substantial changes, and keep pull requests focused.
 
 Set up for development (editable install with test deps):
 
@@ -116,9 +74,7 @@ pytest
 
 Tests live in `backend/tests/` and cover the parser, classifier, engine, and CLI rendering against the fixtures in `fixtures/`.
 
-The interactive UI is a **Preact + Vite** app in `frontend/`, bundled into a single
-self-contained shell at `backend/dbt_debug/web/index.html` that the renderer injects the
-graph into. If you change the UI, rebuild and commit that shell:
+The interactive UI is a **Preact + Vite** app in `frontend/`, bundled into a single self-contained shell at `backend/dbt_debug/web/index.html` that the renderer injects the graph into. If you change the UI, rebuild and commit that shell:
 
 ```bash
 cd frontend
@@ -128,7 +84,7 @@ npm run build     # writes backend/dbt_debug/web/index.html
 
 ## 🗺️ Roadmap
 
-- dbt Cloud artifact resolver (the `DbtCloudSource` contract is stubbed in `artifact_sources.py`).
+- dbt Cloud artifact resolver (the `DbtCloudSource` contract is stubbed in `artifact_sources.py`), so you can point at a Cloud run without downloading files.
 - Shakeout against real-world dbt projects (current test coverage is against synthetic fixtures).
 
 ## 📄 License

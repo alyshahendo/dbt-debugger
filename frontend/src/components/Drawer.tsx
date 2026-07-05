@@ -81,11 +81,11 @@ function SuccessBody({ node }: { node: GraphNode }) {
       <div class="tiles">
         <div class="tile">
           <div class="k">Materialization</div>
-          <div class="v">{node.materialization || '—'}</div>
+          <div class="v">{node.materialization || '-'}</div>
         </div>
         <div class="tile">
           <div class="k">Exec time</div>
-          <div class="v">{node.execution_time != null ? `${node.execution_time.toFixed(2)}s` : '—'}</div>
+          <div class="v">{node.execution_time != null ? `${node.execution_time.toFixed(2)}s` : '-'}</div>
         </div>
       </div>
       <Columns node={node} />
@@ -111,7 +111,7 @@ function FailureBody({ model, node }: { model: Model; node: GraphNode }) {
             Root cause <span class="badge" style="background:rgba(255,157,122,0.16);color:#ff9d7a">computed</span>
           </div>
           <div style="font-size:11px;color:#c3c6cd">
-            {`This model ran and errored — its parents were fine, so it's the origin of the failure. Skipped ${gated} downstream model(s).`}
+            {`This model ran and errored, but its parents were fine, so it's the origin of the failure. Skipped ${gated} downstream model(s).`}
           </div>
         </div>
       ) : node.failure_class === 'casualty' ? (

@@ -112,7 +112,7 @@ export function Sidebar({ model, onSelect }: { model: Model; onSelect: (id: stri
           ))}
         </>
       )}
-      {empty && <div class="hsub">No failures — all green.</div>}
+      {empty && <div class="hsub">No failures. All green.</div>}
     </div>
   );
 }

@@ -71,5 +71,5 @@ def resolve_source(
     if (cwd_target / "manifest.json").is_file():
         return LocalTargetSource(cwd_target)
     raise ValueError(
-        "no artifacts found — pass --target <dir> or --manifest/--run-results paths"
+        "no artifacts found: pass --target <dir> or --manifest/--run-results paths"
     )
