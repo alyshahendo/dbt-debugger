@@ -397,24 +397,36 @@ pre {
   font-weight: 700;
 }
 
-.ask-box {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  margin-top: 8px;
-  padding: 7px 9px;
+.ask-prompt {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: #c3c6cd;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 7px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 9px 10px;
+  margin-top: 8px;
+  white-space: pre-wrap;
+  max-height: 150px;
+  overflow: auto;
 }
 
-.ask-box input {
-  flex: 1;
-  background: transparent;
-  border: 0;
-  outline: none;
-  color: #cfd2d8;
+.ask-copy {
+  margin-top: 8px;
+  width: 100%;
+  font-family: inherit;
   font-size: 11px;
+  font-weight: 600;
+  color: #0b0c0f;
+  background: linear-gradient(150deg, var(--accent), var(--accent2));
+  border: 0;
+  border-radius: 7px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.ask-copy:hover {
+  opacity: 0.92;
 }
 
 .tests-row {

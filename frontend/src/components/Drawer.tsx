@@ -1,8 +1,52 @@
+import { useState } from 'preact/hooks';
 import type { Model } from '../model';
 import { blast } from '../model';
 import type { GraphNode } from '../types';
 import { STATUS, badgeState } from '../status';
 import { relTime, fmtTime, testLabel } from '../format';
+
+function buildPrompt(model: Model, node: GraphNode): string {
+  const gated = blast(model, node.id);
+  const lines: string[] = [];
+  if (node.status === 'error') {
+    lines.push(`My dbt model \`${node.name}\` failed to build.`, '');
+    if (node.message) lines.push('Error:', node.message, '');
+    lines.push(`It is the root cause of the failure${gated ? ` and gated ${gated} downstream model(s)` : ''}.`);
+    if (node.path) lines.push(`Its SQL is at ${node.path}.`);
+    lines.push('', 'Explain why it failed and how to fix it.');
+  } else {
+    const failing = (node.tests || []).filter(t => t.status === 'fail' || t.status === 'error');
+    const names = failing.map(t => testLabel(t, node.name)).join(', ');
+    const rows = failing.reduce((s, t) => s + (t.failures || 0), 0);
+    const noun = failing.length === 1 ? 'a data test' : `${failing.length} data tests`;
+    lines.push(
+      `My dbt model \`${node.name}\` built successfully, but ${noun} failed: ${names}${rows ? ` (${rows} failing rows)` : ''}.`,
+    );
+    if (node.path) lines.push(`Its SQL is at ${node.path}.`);
+    lines.push('', 'Explain what the test checks, why it is failing, and how to investigate and fix it.');
+  }
+  return lines.join('\n');
+}
+
+function copyText(text: string): Promise<void> {
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+  return new Promise((resolve, reject) => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      resolve();
+    } catch (e) {
+      reject(e);
+    } finally {
+      document.body.removeChild(ta);
+    }
+  });
+}
 
 function Columns({ node }: { node: GraphNode }) {
   if (!node.columns || !node.columns.length) return null;
@@ -129,18 +173,28 @@ function Tests({ node }: { node: GraphNode }) {
   );
 }
 
-function Ask({ node }: { node: GraphNode }) {
+function Ask({ model, node }: { model: Model; node: GraphNode }) {
   const hasFailure =
     node.resource_type !== 'source' &&
     (node.status === 'error' || node.test_status === 'fail' || node.test_status === 'error');
+  const [copied, setCopied] = useState(false);
   if (!hasFailure) return null;
+  const prompt = buildPrompt(model, node);
+  const onCopy = () => {
+    copyText(prompt)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      })
+      .catch(() => {});
+  };
   return (
     <div class="ask">
-      <div class="ask-lbl">✦ Ask Claude · this node</div>
-      <div class="ask-box">
-        <input placeholder="Ask about this failure…" disabled />
-        <span style="color:#ff9d7a">↑</span>
-      </div>
+      <div class="ask-lbl">✦ Ask Claude · this failure</div>
+      <div class="ask-prompt mono">{prompt}</div>
+      <button class="ask-copy" onClick={onCopy}>
+        {copied ? 'Copied ✓ — paste into Claude Code' : 'Copy prompt for Claude'}
+      </button>
     </div>
   );
 }
@@ -175,7 +229,7 @@ export function Drawer({ model, node, onClose }: { model: Model; node: GraphNode
       <div class="d-title">{node.name}</div>
       {node.path && <div class="d-path">{node.path}</div>}
       {body}
-      <Ask node={node} />
+      <Ask model={model} node={node} />
     </div>
   );
 }
