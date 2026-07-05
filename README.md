@@ -29,14 +29,18 @@ dbt-debugger is a standalone Python CLI (and Claude Code skill) that works with 
 
 ## 📦 Installation
 
-Requires **Python 3.11+**. Works on macOS, Linux, and Windows.
+Requires **Python 3.11+** and [pipx](https://pipx.pypa.io/). Works on macOS, Linux, and Windows.
 
 ```bash
 git clone https://github.com/alyshahendo/dbt-debugger.git
-pipx install ./dbt-debugger/backend      # or: pip install ./dbt-debugger/backend
+cd dbt-debugger
+./install.sh
 ```
 
-This puts a `dbt-debug` command on your PATH. (Node is **not** required — the UI ships prebuilt. It's only needed to change the frontend; see [Contributing](#-contributing).)
+`install.sh` puts the `dbt-debug` command on your PATH and installs the Claude Code
+skill — it asks whether you want the skill **global** (`~/.claude/skills`, available in
+every project) or scoped to **one project**. (Node is **not** required — the UI ships
+prebuilt; it's only needed to change the frontend, see [Contributing](#-contributing).)
 
 ## 🚀 Usage
 
@@ -91,17 +95,11 @@ actually broke"), Claude picks up the skill and:
 
 So you get both the visual map and a plain-language fix, without leaving the terminal.
 
-To use it in **any** dbt project (not just this repo), install it globally — put the
-`dbt-debug` command on your PATH and copy the skill into your personal skills dir:
-
-```bash
-pipx install ./backend
-cp -r .claude/skills/dbt-debugger ~/.claude/skills/dbt-debugger
-```
-
-The skill talks to `dbt-debug` only through its CLI, so nothing depends on this repo's
-paths. (Under a global install the bundled `--example*` fixtures aren't available —
-point it at your project's real `target/` instead.)
+To use it in **any** dbt project, run `./install.sh` and choose the **global** skill
+option — that puts `dbt-debug` on your PATH and the skill in `~/.claude/skills`. The
+skill talks to `dbt-debug` only through its CLI, so nothing depends on this repo's paths.
+(Under a global install the bundled `--example*` fixtures aren't available — point it at
+your project's real `target/` instead.)
 
 ## 🤝 Contributing
 
