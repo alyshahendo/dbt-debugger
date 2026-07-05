@@ -1,8 +1,29 @@
+import { useState } from 'preact/hooks';
 import type { Model } from '../model';
 import { blast } from '../model';
-import type { GraphNode } from '../types';
+import type { GraphNode, TestResult } from '../types';
 import { STATUS, badgeState } from '../status';
 import { relTime, fmtTime, testLabel } from '../format';
+
+function copyText(text: string): Promise<void> {
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+  return new Promise((resolve, reject) => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      resolve();
+    } catch (e) {
+      reject(e);
+    } finally {
+      document.body.removeChild(ta);
+    }
+  });
+}
 
 function Columns({ node }: { node: GraphNode }) {
   if (!node.columns || !node.columns.length) return null;
@@ -113,20 +134,51 @@ function FailureBody({ model, node }: { model: Model; node: GraphNode }) {
   );
 }
 
+function TestRow({ test, modelName }: { test: TestResult; modelName: string }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const failing = test.status === 'fail' || test.status === 'error';
+  const b = failing ? 'b-fail' : test.status === 'warn' ? 'b-warn' : 'b-pass';
+  const hasQuery = failing && !!test.compiled_sql;
+  const copy = () => {
+    copyText(test.compiled_sql || '')
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      })
+      .catch(() => {});
+  };
+  return (
+    <>
+      <div class="tests-row">
+        <span class="tname">{testLabel(test, modelName)}</span>
+        <span class={`badge ${b}`}>{`${test.status}${test.failures ? ` · ${test.failures}` : ''}`}</span>
+      </div>
+      {hasQuery && (
+        <>
+          <div class="test-q-toggle" onClick={() => setOpen(o => !o)}>
+            {open ? '▾' : '▸'} compiled query · run to see the failing rows
+          </div>
+          {open && (
+            <div class="test-q-wrap">
+              <button class="test-q-copy" onClick={copy}>{copied ? 'copied ✓' : 'copy'}</button>
+              <pre class="test-q">{test.compiled_sql}</pre>
+            </div>
+          )}
+        </>
+      )}
+    </>
+  );
+}
+
 function Tests({ node }: { node: GraphNode }) {
   if (!node.tests || !node.tests.length) return null;
   return (
     <div class="block" style="border:1px solid rgba(255,255,255,0.08)">
       <div class="block-lbl" style="color:#9aa0ab">Tests</div>
-      {node.tests.map((t, i) => {
-        const b = t.status === 'fail' || t.status === 'error' ? 'b-fail' : t.status === 'warn' ? 'b-warn' : 'b-pass';
-        return (
-          <div class="tests-row" key={i}>
-            <span class="tname">{testLabel(t, node.name)}</span>
-            <span class={`badge ${b}`}>{`${t.status}${t.failures ? ` · ${t.failures}` : ''}`}</span>
-          </div>
-        );
-      })}
+      {node.tests.map((t, i) => (
+        <TestRow key={i} test={t} modelName={node.name} />
+      ))}
     </div>
   );
 }

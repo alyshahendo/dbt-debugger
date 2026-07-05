@@ -35,6 +35,7 @@ class ParsedTest:
     column_name: Optional[str]
     attached_model_unique_id: Optional[str]
     depends_on: list[str]
+    compiled_sql: Optional[str] = None
 
 
 @dataclass
@@ -127,6 +128,7 @@ def parse_manifest(manifest: dict) -> tuple[dict[str, ParsedModel], dict[str, Pa
             column_name=node.get("column_name"),
             attached_model_unique_id=gated_models[0] if gated_models else None,
             depends_on=gated_models,
+            compiled_sql=node.get("compiled_code") or node.get("compiled_sql") or node.get("raw_code"),
         )
 
     return models, tests

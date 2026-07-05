@@ -69,3 +69,10 @@ def test_failing_test_carries_type_for_labeling():
     dim_products = next(n for n in g["nodes"] if n["id"].endswith("dim_products"))
     failing = [t for t in dim_products["tests"] if t["status"] == "fail"]
     assert failing and failing[0]["test_type"] == "not_null"
+
+
+def test_failing_test_carries_compiled_sql():
+    g = analyze_target(DEMO)
+    dim_products = next(n for n in g["nodes"] if n["id"].endswith("dim_products"))
+    failing = next(t for t in dim_products["tests"] if t["status"] == "fail")
+    assert failing["compiled_sql"] and "product_id is null" in failing["compiled_sql"]

@@ -918,7 +918,8 @@
           "model.jaffle_shop.dim_customers"
         ],
         "macros": []
-      }
+      },
+      "compiled_code": "select\n    customer_id as unique_field,\n    count(*) as n_records\nfrom analytics.marts.dim_customers\nwhere customer_id is not null\ngroup by customer_id\nhaving count(*) > 1;"
     },
     "test.jaffle_shop.not_null_dim_products_product_id": {
       "resource_type": "test",
@@ -932,7 +933,8 @@
           "model.jaffle_shop.dim_products"
         ],
         "macros": []
-      }
+      },
+      "compiled_code": "select product_id\nfrom analytics.marts.dim_products\nwhere product_id is null;"
     },
     "test.jaffle_shop.accepted_values_stg_products_category": {
       "resource_type": "test",

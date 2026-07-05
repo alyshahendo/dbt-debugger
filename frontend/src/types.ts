@@ -5,6 +5,7 @@ export interface TestResult {
   column_name?: string | null;
   status: string | null;
   failures?: number | null;
+  compiled_sql?: string | null;
 }
 
 export interface Column {

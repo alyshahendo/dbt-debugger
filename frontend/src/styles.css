@@ -390,6 +390,50 @@ pre {
   white-space: pre-wrap;
 }
 
+.test-q-toggle {
+  font-size: 10px;
+  color: #8aa6e0;
+  cursor: pointer;
+  user-select: none;
+  margin: 4px 0 0 2px;
+}
+
+.test-q-wrap {
+  position: relative;
+}
+
+.test-q {
+  margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #c9d3ea;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 8px 9px;
+  white-space: pre-wrap;
+  overflow: auto;
+}
+
+.test-q-copy {
+  position: absolute;
+  top: 11px;
+  right: 7px;
+  font-family: inherit;
+  font-size: 9px;
+  color: #cfd2d8;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  padding: 2px 7px;
+  cursor: pointer;
+}
+
+.test-q-copy:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
 .tests-row {
   display: flex;
   justify-content: space-between;
