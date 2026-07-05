@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from app.cli import main
-from app.engine import analyze_target
-from app.render import render_html
+from dbt_debug.cli import main
+from dbt_debug.engine import analyze_target
+from dbt_debug.render import render_html
 
 DEMO = Path(__file__).resolve().parents[2] / "fixtures" / "jaffle_shop_demo"
 

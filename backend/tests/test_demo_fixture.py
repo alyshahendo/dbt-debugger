@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from app.engine import analyze_target
+from dbt_debug.engine import analyze_target
 
 DEMO = Path(__file__).resolve().parents[2] / "fixtures" / "jaffle_shop_demo"
 

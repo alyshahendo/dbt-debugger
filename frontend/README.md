@@ -19,9 +19,9 @@ npm run build
 ```
 
 `vite build` inlines all JS/CSS into one file and writes it to
-`backend/app/web/index.html` — the shell the Python package ships. It contains a
-`__GRAPH_JSON__` placeholder that `backend/app/render.py` replaces with the
-serialized graph. **Rebuild and commit `backend/app/web/index.html` whenever you
+`backend/dbt_debug/web/index.html` — the shell the Python package ships. It contains a
+`__GRAPH_JSON__` placeholder that `backend/dbt_debug/render.py` replaces with the
+serialized graph. **Rebuild and commit `backend/dbt_debug/web/index.html` whenever you
 change the UI.**
 
 No Node is needed at runtime — only to rebuild the shell.

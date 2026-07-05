@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from app.classifier import classify
-from app.parser import (
+from dbt_debug.classifier import classify
+from dbt_debug.parser import (
     ParsedArtifacts,
     ParsedModel,
     ParsedResult,

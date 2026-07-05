@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dbt-debugger"
+version = "0.1.0"
+description = "Turn a failed dbt run into an interactive lineage map that shows what actually broke."
+requires-python = ">=3.11"
+dependencies = ["networkx>=3.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+dbt-debug = "dbt_debug.cli:main"
+
+[tool.setuptools]
+packages = ["dbt_debug"]
+
+[tool.setuptools.package-data]
+dbt_debug = ["web/*.html"]

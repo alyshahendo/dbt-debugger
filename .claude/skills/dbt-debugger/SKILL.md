@@ -26,13 +26,14 @@ never touches the warehouse.
 - The user asks which failure is the real cause vs. a downstream skip, or how
   many models a failure gated.
 
-All commands run from the repository root using the project venv.
+All commands run from the repository root using the project venv (`dbt-debug` is
+the installed CLI; if it's not on PATH, use `backend/.venv/bin/dbt-debug`).
 
 ## Step 1 — find the root causes
 
 ```bash
 backend/.venv/bin/python -c "
-from backend.app.engine import analyze_target
+from dbt_debug.engine import analyze_target
 g = analyze_target('<target-or-fixture>')
 for n in g['nodes']:
     if n.get('failure_class') == 'root_cause':
@@ -65,7 +66,7 @@ Save it to `analysis.json`.
 ## Step 3 — render with your analysis embedded
 
 ```bash
-backend/.venv/bin/python -m backend.app.cli --target <target> --analysis analysis.json --out dbt-debug-lineage.html --no-open
+backend/.venv/bin/dbt-debug --target <target> --analysis analysis.json --out dbt-debug-lineage.html --no-open
 ```
 
 (For a fixture, swap `--target <target>` for `--example` / `--example-test` /

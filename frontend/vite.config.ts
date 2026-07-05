@@ -9,7 +9,7 @@ export default defineConfig({
     cssCodeSplit: false,
     assetsInlineLimit: 100000000,
     modulePreload: false,
-    outDir: '../backend/app/web',
+    outDir: '../backend/dbt_debug/web',
     emptyOutDir: true,
     copyPublicDir: false,
   },

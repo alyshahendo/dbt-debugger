@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from app.engine import analyze_target, build_graph, derive_lanes
-from app.parser import ParsedModel, parse_artifacts
+from dbt_debug.engine import analyze_target, build_graph, derive_lanes
+from dbt_debug.parser import ParsedModel, parse_artifacts
 
 FIXTURES = Path(__file__).resolve().parents[2] / "fixtures" / "jaffle_shop"
 
