@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import webbrowser
 from pathlib import Path
 
@@ -26,8 +27,23 @@ def build_source(args: argparse.Namespace):
     return resolve_source(target=args.target)
 
 
+def apply_analysis(graph: dict, path: str) -> None:
+    """Attach Claude's per-node explanations, keyed by node id or short name."""
+    ann = json.loads(Path(path).read_text())
+    by_key: dict[str, dict] = {}
+    for n in graph["nodes"]:
+        by_key[n["id"]] = n
+        by_key.setdefault(n["name"], n)
+    for key, text in ann.items():
+        node = by_key.get(key)
+        if node is not None:
+            node["analysis"] = text
+
+
 def run(args: argparse.Namespace) -> Path:
     graph = analyze(build_source(args))
+    if args.analysis:
+        apply_analysis(graph, args.analysis)
     html = render_html(graph)
     out = Path(args.out) if args.out else Path.cwd() / "dbt-debug-lineage.html"
     out.write_text(html)
@@ -43,6 +59,7 @@ def main(argv=None) -> int:
     p.add_argument("--example", action="store_true", help="bundled build example (stg_payments cascade)")
     p.add_argument("--example-test", dest="example_test", action="store_true", help="bundled dbt test example (failing tests)")
     p.add_argument("--example-run", dest="example_run", action="store_true", help="bundled dbt run example (stg_orders failure cascade)")
+    p.add_argument("--analysis", help="path to a JSON map of node id/name -> Claude's explanation, shown inline")
     p.add_argument("--out", help="output HTML path (default: ./dbt-debug-lineage.html)")
     p.add_argument("--no-open", action="store_true", help="don't open the browser")
     args = p.parse_args(argv)

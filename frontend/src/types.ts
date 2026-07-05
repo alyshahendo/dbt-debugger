@@ -30,6 +30,7 @@ export interface GraphNode {
   blamed_root_cause?: string | null;
   columns?: Column[];
   tests?: TestResult[];
+  analysis?: string | null;
 }
 
 export interface Graph {

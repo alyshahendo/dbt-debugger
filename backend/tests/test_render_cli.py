@@ -71,6 +71,17 @@ def test_cli_test_example_is_a_test_run(tmp_path):
     assert graph["summary"]["failing_tests"] == 3
 
 
+def test_analysis_is_embedded_by_node_name(tmp_path):
+    ann = tmp_path / "analysis.json"
+    ann.write_text(json.dumps({"stg_payments": "root-cause explanation from Claude"}))
+    out = tmp_path / "analyzed.html"
+    code = main(["--example", "--analysis", str(ann), "--out", str(out), "--no-open"])
+    assert code == 0
+    graph = _embedded_graph(out.read_text())
+    node = next(n for n in graph["nodes"] if n["name"] == "stg_payments")
+    assert node["analysis"] == "root-cause explanation from Claude"
+
+
 def test_cli_run_example_is_a_run_failure(tmp_path):
     out = tmp_path / "run-lineage.html"
     code = main(["--example-run", "--out", str(out), "--no-open"])
