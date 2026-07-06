@@ -55,6 +55,9 @@ export function deriveModel(graph: Graph): Model {
       }
     });
   }
+  // Suspects (e.g. a broken ephemeral) sit UPSTREAM of the errored node, so the
+  // downstream walk misses them. Add them so they stay on the failure path.
+  if (!isTestRun) graph.nodes.forEach(n => n.failure_class === 'suspect' && cascade.add(n.id));
 
   const pos: Record<string, { x: number; y: number }> = {};
   const lanes: Record<number, GraphNode[]> = {};
