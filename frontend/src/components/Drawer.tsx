@@ -49,7 +49,7 @@ function SourceBody({ node }: { node: GraphNode }) {
   const known = fresh === 'pass' || isStale;
   return (
     <>
-      <div class={`block ${isStale ? 'block-cas' : ''}`}>
+      <div class={`block ${isStale ? 'block-cas' : 'block-neutral'}`}>
         <div class="block-lbl" style={{ color: isStale ? '#e8b34a' : '#9aa0ab' }}>Freshness</div>
         <div style="font-size:11px;color:#c3c6cd">
           {known

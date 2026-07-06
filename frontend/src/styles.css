@@ -368,6 +368,11 @@ main {
   border: 1px solid rgba(255, 157, 122, 0.34);
 }
 
+.block-neutral {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .block-lbl {
   font-size: 10px;
   text-transform: uppercase;
