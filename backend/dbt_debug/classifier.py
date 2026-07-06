@@ -99,8 +99,9 @@ def classify(artifacts: ParsedArtifacts) -> dict[str, Classification]:
         for tuid, test in artifacts.tests.items():
             res = artifacts.results.get(tuid)
             if res and res.status in ("fail", "error"):
-                if test.attached_model_unique_id in artifacts.models:
-                    blocking.add(test.attached_model_unique_id)
+                for m in test.attached_model_unique_ids:
+                    if m in artifacts.models:
+                        blocking.add(m)
 
     roots = failed | blocking
 

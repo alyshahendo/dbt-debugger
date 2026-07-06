@@ -33,7 +33,7 @@ def make(
     results = {uid: ParsedResult(uid, st) for uid, st in statuses.items()}
     parsed_tests: dict[str, ParsedTest] = {}
     for tuid, (attached, ttype) in (tests or {}).items():
-        parsed_tests[tuid] = ParsedTest(tuid, tuid, ttype, None, attached, [attached])
+        parsed_tests[tuid] = ParsedTest(tuid, tuid, ttype, None, [attached], [attached])
     for tuid, st in (test_results or {}).items():
         results[tuid] = ParsedResult(tuid, st, failures=1)
     return ParsedArtifacts(
@@ -159,6 +159,24 @@ def test_healthy_ephemeral_stays_ok():
     res = classify(arts)
     assert res["eph"].failure_class == "ok"
     assert res["consumer"].failure_class == "ok"
+
+
+def test_singular_test_blocks_all_referenced_models_in_build():
+    # A failing singular test spanning two models flags both as root causes,
+    # rather than arbitrarily blaming depends_on[0].
+    models = {"a": ParsedModel("a", "a", None, None, [], []), "b": ParsedModel("b", "b", None, None, [], [])}
+    test = ParsedTest("t.s", "assert_x", None, None, ["a", "b"], ["a", "b"])
+    results = {
+        "a": ParsedResult("a", "success"),
+        "b": ParsedResult("b", "success"),
+        "t.s": ParsedResult("t.s", "fail", failures=1),
+    }
+    arts = ParsedArtifacts(
+        invocation_id="t", command="build", models=models, tests={"t.s": test}, results=results
+    )
+    res = classify(arts)
+    assert res["a"].failure_class == "root_cause"
+    assert res["b"].failure_class == "root_cause"
 
 
 def test_jaffle_shop_fixture_end_to_end():

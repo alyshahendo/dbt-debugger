@@ -68,22 +68,20 @@ def build_graph(artifacts: ParsedArtifacts) -> dict:
 
     tests_by_model: dict[str, list[dict]] = {}
     for tuid, test in artifacts.tests.items():
-        model_uid = test.attached_model_unique_id
-        if model_uid is None or model_uid not in artifacts.models:
-            continue
         res = artifacts.results.get(tuid)
-        tests_by_model.setdefault(model_uid, []).append(
-            {
-                "unique_id": tuid,
-                "name": test.name,
-                "test_type": test.test_type,
-                "column_name": test.column_name,
-                "status": res.status if res else None,
-                "failures": res.failures if res else None,
-                "message": res.message if res else None,
-                "compiled_sql": (res.compiled_sql if res else None) or test.compiled_sql,
-            }
-        )
+        row = {
+            "unique_id": tuid,
+            "name": test.name,
+            "test_type": test.test_type,
+            "column_name": test.column_name,
+            "status": res.status if res else None,
+            "failures": res.failures if res else None,
+            "message": res.message if res else None,
+            "compiled_sql": (res.compiled_sql if res else None) or test.compiled_sql,
+        }
+        for model_uid in test.attached_model_unique_ids:
+            if model_uid in artifacts.models:
+                tests_by_model.setdefault(model_uid, []).append(row)
 
     nodes: list[dict] = []
 
@@ -167,8 +165,8 @@ def _summarize(nodes: list[dict]) -> dict:
     for n in models:
         fc[n["failure_class"]] = fc.get(n["failure_class"], 0) + 1
     root_causes = [n["id"] for n in models if n["failure_class"] == "root_cause"]
-    failing_tests = sum(
-        1 for n in models for t in n["tests"] if t["status"] in ("fail", "error")
+    failing_tests = len(
+        {t["unique_id"] for n in models for t in n["tests"] if t["status"] in ("fail", "error")}
     )
     stale_sources = sum(
         1 for n in sources if n.get("freshness_status") in ("warn", "error")

@@ -41,7 +41,7 @@ class ParsedTest:
     name: str
     test_type: Optional[str]
     column_name: Optional[str]
-    attached_model_unique_id: Optional[str]
+    attached_model_unique_ids: list[str]
     depends_on: list[str]
     compiled_sql: Optional[str] = None
 
@@ -130,15 +130,20 @@ def parse_manifest(manifest: dict) -> tuple[dict[str, ParsedModel], dict[str, Pa
             continue
         gated_models = [d for d in node.get("depends_on", {}).get("nodes", []) if d in model_ids]
         attached = node.get("attached_node")
-        if attached not in model_ids:
-            attached = gated_models[0] if gated_models else None
+        if attached in model_ids:
+            # a generic/column test dbt tied to one model (attached_node wins)
+            attached_models = [attached]
+        else:
+            # a singular test has no attached_node; it belongs to every model it
+            # references, so surface it on all of them rather than guessing one
+            attached_models = list(gated_models)
         test_meta = node.get("test_metadata") or {}
         tests[uid] = ParsedTest(
             unique_id=uid,
             name=node.get("name", uid.split(".")[-1]),
             test_type=test_meta.get("name"),
             column_name=node.get("column_name"),
-            attached_model_unique_id=attached,
+            attached_model_unique_ids=attached_models,
             depends_on=gated_models,
             compiled_sql=_normalize_sql(node.get("compiled_code") or node.get("compiled_sql")),
         )

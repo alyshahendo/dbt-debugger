@@ -47,7 +47,7 @@ def test_relationships_test_attaches_to_declared_model():
         },
     })
     _, tests = parse_manifest(manifest)
-    assert tests["test.p.rel"].attached_model_unique_id == "model.p.fct_orders"
+    assert tests["test.p.rel"].attached_model_unique_ids == ["model.p.fct_orders"]
 
 
 def test_test_without_attached_node_falls_back_to_depends_on():
@@ -61,4 +61,24 @@ def test_test_without_attached_node_falls_back_to_depends_on():
         },
     })
     _, tests = parse_manifest(manifest)
-    assert tests["test.p.nn"].attached_model_unique_id == "model.p.stg"
+    assert tests["test.p.nn"].attached_model_unique_ids == ["model.p.stg"]
+
+
+def test_singular_test_attaches_to_every_referenced_model():
+    # A tests/*.sql singular test has no attached_node and references two models;
+    # it should attach to both, not arbitrarily to depends_on[0].
+    manifest = _manifest({
+        "model.p.stg_customers": {"resource_type": "model", "name": "stg_customers", "depends_on": {"nodes": []}},
+        "model.p.stg_orders": {"resource_type": "model", "name": "stg_orders", "depends_on": {"nodes": []}},
+        "test.p.singular": {
+            "resource_type": "test",
+            "name": "assert_no_returned_orders",
+            "attached_node": None,
+            "depends_on": {"nodes": ["model.p.stg_customers", "model.p.stg_orders"]},
+        },
+    })
+    _, tests = parse_manifest(manifest)
+    assert tests["test.p.singular"].attached_model_unique_ids == [
+        "model.p.stg_customers",
+        "model.p.stg_orders",
+    ]
