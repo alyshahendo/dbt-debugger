@@ -82,6 +82,20 @@ def test_analysis_is_embedded_by_node_name(tmp_path):
     assert node["analysis"] == "root-cause explanation from Claude"
 
 
+def test_analysis_can_be_read_from_stdin(tmp_path, monkeypatch):
+    import io
+
+    monkeypatch.setattr(
+        "sys.stdin", io.StringIO(json.dumps({"stg_payments": "piped in via stdin"}))
+    )
+    out = tmp_path / "analyzed-stdin.html"
+    code = main(["--example", "--analysis", "-", "--out", str(out), "--no-open"])
+    assert code == 0
+    graph = _embedded_graph(out.read_text())
+    node = next(n for n in graph["nodes"] if n["name"] == "stg_payments")
+    assert node["analysis"] == "piped in via stdin"
+
+
 def test_cli_run_example_is_a_run_failure(tmp_path):
     out = tmp_path / "run-lineage.html"
     code = main(["--example-run", "--out", str(out), "--no-open"])

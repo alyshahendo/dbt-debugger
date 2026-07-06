@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import webbrowser
 from pathlib import Path
 
@@ -28,8 +29,12 @@ def build_source(args: argparse.Namespace):
 
 
 def apply_analysis(graph: dict, path: str) -> None:
-    """Attach Claude's per-node explanations, keyed by node id or short name."""
-    ann = json.loads(Path(path).read_text())
+    """Attach Claude's per-node explanations, keyed by node id or short name.
+
+    `path` may be "-" to read the JSON map from stdin, so callers never have to
+    drop an intermediate file into the working directory."""
+    text = sys.stdin.read() if path == "-" else Path(path).read_text()
+    ann = json.loads(text)
     by_key: dict[str, dict] = {}
     for n in graph["nodes"]:
         by_key[n["id"]] = n
@@ -59,7 +64,7 @@ def main(argv=None) -> int:
     p.add_argument("--example", action="store_true", help="bundled build example (stg_payments cascade)")
     p.add_argument("--example-test", dest="example_test", action="store_true", help="bundled dbt test example (failing tests)")
     p.add_argument("--example-run", dest="example_run", action="store_true", help="bundled dbt run example (stg_orders failure cascade)")
-    p.add_argument("--analysis", help="path to a JSON map of node id/name -> Claude's explanation, shown inline")
+    p.add_argument("--analysis", help="path to a JSON map of node id/name -> Claude's explanation (or '-' to read it from stdin), shown inline")
     p.add_argument("--json", action="store_true", help="print the failure graph as JSON to stdout instead of rendering HTML")
     p.add_argument("--out", help="output HTML path (default: ./dbt-debug-lineage.html)")
     p.add_argument("--no-open", action="store_true", help="don't open the browser")

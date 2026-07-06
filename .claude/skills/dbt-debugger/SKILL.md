@@ -35,15 +35,18 @@ user or look for `target/manifest.json` + `target/run_results.json`.
 ## Step 1: inspect the failure graph
 
 ```bash
-dbt-debug --target ./target --json > dbt-debug-graph.json
+dbt-debug --target ./target --json > /tmp/dbt-debug-graph.json
 ```
 
-Write intermediate files in the working directory, not `/tmp`: the Write tool
-is sandboxed to the working directory, so a `/tmp/...` path fails with "Error
-writing file". Step 3 removes them, leaving only the HTML.
+Keep intermediates out of the user's repo so nothing can be committed by
+accident: write the graph to `/tmp` with the shell (as above) and read it back
+with your Read tool. Do not create files in the working directory, and do not
+use your Write tool for `/tmp` (it is sandboxed to the working directory and
+will fail with "Error writing file"). The analysis in Step 3 is piped via
+stdin, so it never touches disk at all.
 
 (Or `--manifest <m.json> --run-results <rr.json> [--sources <s.json>]`.) Read
-`dbt-debug-graph.json` and find the root causes, the nodes with
+`/tmp/dbt-debug-graph.json` and find the root causes, the nodes with
 `failure_class == "root_cause"`. For each, note its `name`, `path`, `status`,
 `message`, and how many nodes list it as their `blamed_root_cause` (the blast
 radius). Also note the failing tests (a model's `tests[]` with status
@@ -63,20 +66,27 @@ an analysis map keyed by model name:
 }
 ```
 
-Save it to `dbt-debug-analysis.json` in the working directory (see the note in
-Step 1: do not use `/tmp`).
+Do not save this to a file. Pass it to Step 3 on stdin.
 
 ## Step 3: render with your analysis embedded
 
+Pipe the analysis map to `--analysis -` with a quoted heredoc, so no file is
+ever written to the repo:
+
 ```bash
-dbt-debug --target ./target --analysis dbt-debug-analysis.json --out dbt-debug-lineage.html
-rm -f dbt-debug-graph.json dbt-debug-analysis.json
+dbt-debug --target ./target --analysis - --out dbt-debug-lineage.html <<'ANALYSIS'
+{
+  "stg_payments": "…your explanation…",
+  "dim_products": "…"
+}
+ANALYSIS
 ```
 
-The self-contained `dbt-debug-lineage.html` is the only artifact to keep; the
-`rm` clears the two intermediates. Each analyzed node's drawer now shows a
-**"✦ Claude's analysis"** block inline, so the user reads the diagnosis right in
-the map.
+The quoted `<<'ANALYSIS'` delimiter keeps backticks and quotes in your JSON
+literal (no shell expansion). The self-contained `dbt-debug-lineage.html` in the
+working directory is the only artifact produced; the graph in `/tmp` is
+throwaway. Each analyzed node's drawer now shows a **"✦ Claude's analysis"**
+block inline, so the user reads the diagnosis right in the map.
 
 Then, in the terminal, also:
 - Name each root cause and its blast radius.
