@@ -9,6 +9,7 @@ function nodeSub(n: GraphNode): string {
     return n.freshness_status === 'warn' || n.freshness_status === 'error' ? 'source · stale' : 'source';
   let sub = n.materialization || 'model';
   if (n.status === 'error') sub += ' · failed';
+  else if (n.failure_class === 'suspect') sub += ' · suspect';
   else if (n.failure_class === 'casualty') sub += ' · skipped';
   else if (n.test_status === 'fail' || n.test_status === 'error') sub += ' · test failed';
   return sub;

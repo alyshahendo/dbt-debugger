@@ -105,13 +105,11 @@ function FailureBody({ model, node }: { model: Model; node: GraphNode }) {
       )}
       {node.analysis ? (
         <Analysis node={node} />
-      ) : node.status === 'error' ? (
-        <div class="block block-root">
-          <div class="block-lbl" style="color:#ff9d7a">
-            Root cause <span class="badge" style="background:rgba(255,157,122,0.16);color:#ff9d7a">computed</span>
-          </div>
+      ) : node.failure_class === 'suspect' ? (
+        <div class="block block-cas">
+          <div class="block-lbl" style="color:#f0a24e">Suspect · inlined</div>
           <div style="font-size:11px;color:#c3c6cd">
-            {`This model ran and errored, but its parents were fine, so it's the origin of the failure. Skipped ${gated} downstream model(s).`}
+            Ephemeral, so it never ran on its own. dbt inlined it into <span class="mono">{model.byId[node.blamed_root_cause || '']?.name || node.blamed_root_cause}</span>, which failed. The error may originate in this model's SQL.
           </div>
         </div>
       ) : node.failure_class === 'casualty' ? (
@@ -208,7 +206,11 @@ export function Drawer({ model, node, onClose }: { model: Model; node: GraphNode
     body = <SourceBody node={node} />;
   } else {
     const testFailed = node.test_status === 'fail' || node.test_status === 'error';
-    const isSuccess = node.status !== 'error' && node.failure_class !== 'casualty' && !testFailed;
+    const isSuccess =
+      node.status !== 'error' &&
+      node.failure_class !== 'casualty' &&
+      node.failure_class !== 'suspect' &&
+      !testFailed;
     body = (
       <>
         {isSuccess ? <SuccessBody node={node} /> : <FailureBody model={model} node={node} />}

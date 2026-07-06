@@ -5,6 +5,9 @@ Leans on dbt's own execution semantics:
   - status=skipped => dbt blocked it because an upstream node failed => CASUALTY
   - in `dbt build`, a FAILED TEST gates downstream models (they get skipped);
     the test's attached model is treated as the blocking root cause.
+  - an EPHEMERAL model never runs on its own; dbt inlines it as a CTE into its
+    consumers. If it is inlined into a model that errored, its SQL is a hidden
+    candidate for the bug, so it is flagged a SUSPECT rather than shown as ok.
 
 Each casualty is attributed to its NEAREST failed/blocking ancestor via an
 upward (reverse) breadth-first walk over the model DAG.
@@ -54,6 +57,27 @@ def _nearest_root_ancestor(
     return None
 
 
+def _ephemeral_error_consumer(
+    g: nx.DiGraph, node: str, ephemeral: set[str], failed: set[str]
+) -> Optional[str]:
+    """An ephemeral model is inlined into whatever refs it (recursively through
+    other ephemeral models). Return an errored model it is inlined into, if any."""
+    seen = {node}
+    frontier = list(g.successors(node))
+    while frontier:
+        next_frontier: list[str] = []
+        for s in frontier:
+            if s in seen:
+                continue
+            seen.add(s)
+            if s in failed:
+                return s
+            if s in ephemeral:
+                next_frontier.extend(g.successors(s))
+        frontier = next_frontier
+    return None
+
+
 def classify(artifacts: ParsedArtifacts) -> dict[str, Classification]:
     g = build_dag(artifacts)
     status_of = {
@@ -64,6 +88,11 @@ def classify(artifacts: ParsedArtifacts) -> dict[str, Classification]:
     is_build = artifacts.command == "build"
 
     failed = {uid for uid in artifacts.models if status_of.get(uid) == "error"}
+    ephemeral = {
+        uid
+        for uid, m in artifacts.models.items()
+        if (m.materialization or "").lower() == "ephemeral"
+    }
 
     blocking: set[str] = set()
     if is_build:
@@ -80,6 +109,12 @@ def classify(artifacts: ParsedArtifacts) -> dict[str, Classification]:
         status = status_of.get(uid)
         if uid in roots:
             result[uid] = Classification("root_cause", uid)
+        elif uid in ephemeral and uid not in artifacts.results:
+            consumer = _ephemeral_error_consumer(g, uid, ephemeral, failed)
+            if consumer is not None:
+                result[uid] = Classification("suspect", consumer)
+            else:
+                result[uid] = Classification("ok", None)
         elif status == "skipped":
             blame = _nearest_root_ancestor(g, uid, roots)
             if blame is not None:

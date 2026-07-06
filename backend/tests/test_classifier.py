@@ -23,9 +23,11 @@ def make(
     command: str = "build",
     tests: dict[str, tuple[str, str]] | None = None,
     test_results: dict[str, str] | None = None,
+    materializations: dict[str, str] | None = None,
 ) -> ParsedArtifacts:
+    mats = materializations or {}
     models = {
-        uid: ParsedModel(uid, uid, None, None, [], parents)
+        uid: ParsedModel(uid, uid, None, mats.get(uid), [], parents)
         for uid, parents in deps.items()
     }
     results = {uid: ParsedResult(uid, st) for uid, st in statuses.items()}
@@ -120,6 +122,43 @@ def test_multiple_independent_root_causes():
     res = classify(arts)
     assert res["b"].blamed_root_cause_unique_id == "a"
     assert res["y"].blamed_root_cause_unique_id == "x"
+
+
+def test_broken_ephemeral_is_suspect_not_the_errored_consumer():
+    # eph is ephemeral (never runs, no result); dbt inlines it into consumer,
+    # which is the node that errored. eph is the hidden suspect.
+    arts = make(
+        deps={"eph": [], "consumer": ["eph"]},
+        statuses={"consumer": "error"},
+        materializations={"eph": "ephemeral"},
+    )
+    res = classify(arts)
+    assert res["consumer"].failure_class == "root_cause"
+    assert res["eph"].failure_class == "suspect"
+    assert res["eph"].blamed_root_cause_unique_id == "consumer"
+
+
+def test_ephemeral_inlined_through_ephemeral_chain_is_suspect():
+    # eph1 -> eph2 -> consumer(error); eph1's SQL still reaches the failing query.
+    arts = make(
+        deps={"eph1": [], "eph2": ["eph1"], "consumer": ["eph2"]},
+        statuses={"consumer": "error"},
+        materializations={"eph1": "ephemeral", "eph2": "ephemeral"},
+    )
+    res = classify(arts)
+    assert res["eph1"].failure_class == "suspect"
+    assert res["eph2"].failure_class == "suspect"
+
+
+def test_healthy_ephemeral_stays_ok():
+    arts = make(
+        deps={"eph": [], "consumer": ["eph"]},
+        statuses={"consumer": "success"},
+        materializations={"eph": "ephemeral"},
+    )
+    res = classify(arts)
+    assert res["eph"].failure_class == "ok"
+    assert res["consumer"].failure_class == "ok"
 
 
 def test_jaffle_shop_fixture_end_to_end():

@@ -12,6 +12,7 @@ export const STATUS: Record<string, StatusStyle> = {
   failed: { node: 'n-root', icon: '✕', color: '#f2555a', badge: ['FAILED', 'b-fail'] },
   testfail: { node: 'n-root', icon: '✕', color: '#f2555a', badge: ['TEST FAILED', 'b-fail'] },
   skipped: { node: 'n-cas', icon: '⊘', color: '#f0a24e', badge: ['SKIPPED', 'b-warn'] },
+  suspect: { node: 'n-cas', icon: '?', color: '#f0a24e', badge: ['SUSPECT', 'b-warn'] },
   stale: { node: 'n-stale', icon: '⧗', color: '#e8b34a', badge: ['STALE', 'b-warn'] },
   warn: { node: 'n-stale', icon: '⧗', color: '#e8b34a', badge: ['WARNING', 'b-warn'] },
   source: { node: 'n-src', icon: '◦', color: '#8aa6e0', badge: ['SOURCE', 'b-neutral'] },
@@ -27,6 +28,7 @@ export function nodeState(n: GraphNode, isTestRun: boolean): string {
     return 'passed';
   }
   if (n.status === 'error') return 'failed';
+  if (n.failure_class === 'suspect') return 'suspect';
   if (n.failure_class === 'casualty' || n.failure_class === 'skipped') return 'skipped';
   if (n.test_status === 'fail' || n.test_status === 'error') return 'testfail';
   if (n.test_status === 'warn') return 'warn';
@@ -38,6 +40,7 @@ export function badgeState(n: GraphNode): string {
   if (n.resource_type === 'source')
     return n.freshness_status === 'warn' || n.freshness_status === 'error' ? 'stale' : 'source';
   if (n.status === 'error') return 'failed';
+  if (n.failure_class === 'suspect') return 'suspect';
   if (n.failure_class === 'casualty') return 'skipped';
   if (n.test_status === 'fail' || n.test_status === 'error') return 'testfail';
   if (n.test_status === 'warn') return 'warn';
