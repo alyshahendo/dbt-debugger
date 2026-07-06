@@ -17,8 +17,9 @@ interactive lineage map, with your analysis of each root cause baked into the
 map's detail drawer. Runs read-only over the artifacts dbt already produces;
 never touches the warehouse.
 
-Requires the `dbt-debug` command on PATH (`pipx install dbt-debugger`, or from a
-source checkout `pipx install ./backend`). All steps use only that command.
+Requires the `dbt-debug` command on PATH. Install it with the repo's
+`./install.sh`, or `pipx install ./backend` from a source checkout. All steps
+use only that command.
 
 ## When to use this
 

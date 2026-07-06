@@ -6,10 +6,10 @@ A Claude Code skill. When a dbt run fails, Claude finds the model that actually 
 
 ## ✨ Highlights
 
-- 🎯 **Finds the real culprit.** Classifies every node in a failed run as a **root cause** or a downstream **casualty**, so you fix the one thing that matters.
+- 🎯 **Finds the real culprit.** Classifies every node in a failed run as a **root cause**, a downstream **casualty**, or a **suspect** (an inlined ephemeral that may be hiding the bug), so you fix the one thing that matters.
 - 🤖 **Claude explains it.** Claude reads the failing model's SQL and the dbt error, works out why it broke, embeds that analysis in the map, and walks you through the fix in the terminal.
 - 🗺️ **Interactive lineage view.** Models laid out in lanes (sources, staging, intermediate, marts, reporting) with a glowing failure cascade, a click-to-open detail drawer, a "failure paths only" toggle, and a stepper through each root cause.
-- ✅ **Tests & freshness in context.** Rolls up dbt test results per model, shows source freshness when `sources.json` is present, and lets you expand a failing test's **compiled query** (copy it to pull the failing rows).
+- ✅ **Tests & freshness in context.** Rolls up dbt test results per model, shows source freshness and the stale threshold it was checked against when `sources.json` is present, and lets you expand a failing test's **compiled query** (copy it to pull the failing rows).
 - 📄 **One self-contained HTML file.** No server, no database, nothing to host. Easy to share, attach to an incident, or drop in a PR.
 
 ## 🔎 How it decides what broke
@@ -19,6 +19,7 @@ When a `dbt run` or `dbt build` fails, `run_results.json` hands you a flat list 
 - `status=error` means the node actually ran (its parents were fine), so it is a **root cause**.
 - `status=skipped` means dbt blocked it because something upstream failed, so it is a **casualty**, attributed to its nearest failed ancestor.
 - In `dbt build`, a failed test gates the models below it, so its attached model is treated as the blocking root cause.
+- An **ephemeral** model never runs on its own; dbt inlines it into its consumers, so a bug in it surfaces on the model that inlines it. If it feeds an errored model, it is flagged a **suspect** rather than shown as passing, so you look where the bug actually lives.
 
 It reads `manifest.json`, `run_results.json`, and optionally `sources.json` read-only. It never touches your warehouse or your project.
 
