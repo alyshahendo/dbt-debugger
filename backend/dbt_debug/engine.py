@@ -81,7 +81,7 @@ def build_graph(artifacts: ParsedArtifacts) -> dict:
                 "status": res.status if res else None,
                 "failures": res.failures if res else None,
                 "message": res.message if res else None,
-                "compiled_sql": test.compiled_sql,
+                "compiled_sql": (res.compiled_sql if res else None) or test.compiled_sql,
             }
         )
 

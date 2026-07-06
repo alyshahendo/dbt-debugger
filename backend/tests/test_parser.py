@@ -2,7 +2,19 @@
 
 from __future__ import annotations
 
-from dbt_debug.parser import parse_manifest
+from dbt_debug.parser import parse_manifest, parse_run_results
+
+
+def test_run_results_carry_stripped_compiled_sql():
+    # dbt leaves a test's manifest compiled_code null; the real query is in run_results.
+    rr = {
+        "args": {"which": "build"},
+        "results": [
+            {"unique_id": "test.p.u", "status": "fail", "compiled_code": "\n\n\nselect 1 from t\n\n"}
+        ],
+    }
+    _, results = parse_run_results(rr)
+    assert results["test.p.u"].compiled_sql == "select 1 from t"
 
 
 def _manifest(nodes):

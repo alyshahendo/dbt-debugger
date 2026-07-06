@@ -46,6 +46,7 @@ class ParsedResult:
     message: Optional[str] = None
     failures: Optional[int] = None
     completed_at: Optional[str] = None
+    compiled_sql: Optional[str] = None
 
 
 @dataclass
@@ -131,7 +132,7 @@ def parse_manifest(manifest: dict) -> tuple[dict[str, ParsedModel], dict[str, Pa
             column_name=node.get("column_name"),
             attached_model_unique_id=attached,
             depends_on=gated_models,
-            compiled_sql=node.get("compiled_code") or node.get("compiled_sql") or node.get("raw_code"),
+            compiled_sql=node.get("compiled_code") or node.get("compiled_sql"),
         )
 
     return models, tests
@@ -156,6 +157,7 @@ def parse_run_results(run_results: dict) -> tuple[Optional[str], dict[str, Parse
             message=r.get("message"),
             failures=r.get("failures"),
             completed_at=completed_at,
+            compiled_sql=(r.get("compiled_code") or "").strip() or None,
         )
     return command, results
 
