@@ -43,6 +43,12 @@ function Columns({ node }: { node: GraphNode }) {
   );
 }
 
+function fmtWindow(w?: { count: number | null; period: string } | null): string | null {
+  if (!w || w.count == null) return null;
+  const unit: Record<string, string> = { minute: 'm', hour: 'h', day: 'd' };
+  return `${w.count}${unit[w.period] || ' ' + w.period}`;
+}
+
 function SourceBody({ node }: { node: GraphNode }) {
   const fresh = node.freshness_status;
   const isStale = fresh === 'warn' || fresh === 'error';
@@ -50,6 +56,12 @@ function SourceBody({ node }: { node: GraphNode }) {
   const known = isFresh || isStale;
   const blockClass = isStale ? 'block-cas' : isFresh ? 'block-ok' : 'block-neutral';
   const lblColor = isStale ? '#e8b34a' : isFresh ? '#3ecf8e' : '#9aa0ab';
+  const crit = node.freshness_criteria;
+  const warn = fmtWindow(crit?.warn_after);
+  const err = fmtWindow(crit?.error_after);
+  const threshold = [warn && `warn after ${warn}`, err && `error after ${err}`]
+    .filter(Boolean)
+    .join(' · ');
   return (
     <>
       <div class={`block ${blockClass}`}>
@@ -59,6 +71,9 @@ function SourceBody({ node }: { node: GraphNode }) {
             ? `${fresh} · loaded ~${Math.round((node.freshness_age_seconds || 0) / 3600)}h ago`
             : 'not checked'}
         </div>
+        {threshold && (
+          <div style="font-size:10px;color:#8a8f99;margin-top:4px">stale threshold: {threshold}</div>
+        )}
       </div>
       <Columns node={node} />
     </>

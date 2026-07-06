@@ -25,6 +25,10 @@ export interface GraphNode {
   lane: number;
   freshness_status?: string | null;
   freshness_age_seconds?: number | null;
+  freshness_criteria?: {
+    warn_after?: { count: number | null; period: string } | null;
+    error_after?: { count: number | null; period: string } | null;
+  } | null;
   execution_time?: number | null;
   completed_at?: string | null;
   message?: string | null;
