@@ -183,12 +183,16 @@ function Tests({ node }: { node: GraphNode }) {
   );
 }
 
+function withInlineCode(text: string) {
+  return text.split('`').map((part, i) => (i % 2 === 1 ? <code class="inline-code">{part}</code> : part));
+}
+
 function Analysis({ node }: { node: GraphNode }) {
   if (!node.analysis) return null;
   return (
     <div class="block block-root">
       <div class="block-lbl" style="color:#ff9d7a">✦ Claude's analysis</div>
-      <div class="analysis">{node.analysis}</div>
+      <div class="analysis">{withInlineCode(node.analysis)}</div>
     </div>
   );
 }
