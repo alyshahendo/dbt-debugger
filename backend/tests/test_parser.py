@@ -5,16 +5,27 @@ from __future__ import annotations
 from dbt_debug.parser import parse_manifest, parse_run_results
 
 
-def test_run_results_carry_stripped_compiled_sql():
-    # dbt leaves a test's manifest compiled_code null; the real query is in run_results.
+def test_run_results_normalize_compiled_sql():
+    # dbt leaves a test's manifest compiled_code null; the real query is in run_results,
+    # padded with blank lines and no trailing semicolon. We collapse and terminate it.
     rr = {
         "args": {"which": "build"},
         "results": [
-            {"unique_id": "test.p.u", "status": "fail", "compiled_code": "\n\n\nselect 1 from t\n\n"}
+            {
+                "unique_id": "test.p.u",
+                "status": "fail",
+                "compiled_code": "\n    \n\nselect 1\n\nfrom t\nhaving count(*) > 1\n\n\n",
+            }
         ],
     }
     _, results = parse_run_results(rr)
-    assert results["test.p.u"].compiled_sql == "select 1 from t"
+    assert results["test.p.u"].compiled_sql == "select 1\nfrom t\nhaving count(*) > 1;"
+
+
+def test_run_results_blank_compiled_sql_is_none():
+    rr = {"args": {"which": "build"}, "results": [{"unique_id": "m.p.x", "status": "success", "compiled_code": "\n\n"}]}
+    _, results = parse_run_results(rr)
+    assert results["m.p.x"].compiled_sql is None
 
 
 def _manifest(nodes):

@@ -165,7 +165,7 @@ def parse_run_results(run_results: dict) -> tuple[Optional[str], dict[str, Parse
             message=r.get("message"),
             failures=r.get("failures"),
             completed_at=completed_at,
-            compiled_sql=(r.get("compiled_code") or "").strip() or None,
+            compiled_sql=_normalize_sql((r.get("compiled_code") or "").strip() or None),
         )
     return command, results
 
