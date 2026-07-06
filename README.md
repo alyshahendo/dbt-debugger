@@ -2,7 +2,12 @@
 
 > Turn a failed `dbt` run into an interactive lineage map that tells you **what actually broke**, not just what got skipped.
 
+[![CI](https://github.com/alyshahendo/dbt-debugger/actions/workflows/ci.yml/badge.svg)](https://github.com/alyshahendo/dbt-debugger/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A Claude Code skill. When a dbt run fails, Claude finds the model that actually broke (versus the ones that were only skipped downstream), explains why, and renders an interactive map of the blast radius.
+
+> **[▶ Try the live demo →](https://alyshahendo.github.io/dbt-debugger/)** &nbsp;An interactive map of a real failed build, with Claude's root-cause analysis embedded. No install, nothing to run.
 
 ## ✨ Highlights
 
