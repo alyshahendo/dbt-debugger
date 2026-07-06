@@ -138,7 +138,7 @@ function TestRow({ test, modelName }: { test: TestResult; modelName: string }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const failing = test.status === 'fail' || test.status === 'error';
-  const b = failing ? 'b-fail' : test.status === 'warn' ? 'b-warn' : 'b-pass';
+  const b = failing ? 'b-fail' : test.status === 'pass' ? 'b-pass' : 'b-warn';
   const hasQuery = failing && !!test.compiled_sql;
   const copy = () => {
     copyText(test.compiled_sql || '')
