@@ -120,13 +120,16 @@ def parse_manifest(manifest: dict) -> tuple[dict[str, ParsedModel], dict[str, Pa
         if not _is_test(node):
             continue
         gated_models = [d for d in node.get("depends_on", {}).get("nodes", []) if d in model_ids]
+        attached = node.get("attached_node")
+        if attached not in model_ids:
+            attached = gated_models[0] if gated_models else None
         test_meta = node.get("test_metadata") or {}
         tests[uid] = ParsedTest(
             unique_id=uid,
             name=node.get("name", uid.split(".")[-1]),
             test_type=test_meta.get("name"),
             column_name=node.get("column_name"),
-            attached_model_unique_id=gated_models[0] if gated_models else None,
+            attached_model_unique_id=attached,
             depends_on=gated_models,
             compiled_sql=node.get("compiled_code") or node.get("compiled_sql") or node.get("raw_code"),
         )
