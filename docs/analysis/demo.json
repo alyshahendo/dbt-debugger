@@ -1,0 +1,7 @@
+{
+  "stg_payments": "Root cause. This model selects a `payment_method` column that no longer exists in `raw.payments`, so the run dies with `column \"payment_method\" does not exist`. Notice the source freshness panel already flags `raw.payments` as stale (last loaded 2026-06-29): the upstream table changed and the load is behind. Fix the column reference (the source likely renamed or dropped `payment_method`) and refresh the source. Everything below in the payments branch is skipped because of this, not independently broken.",
+  "int_payments_enriched": "Casualty, not a bug. dbt skipped this because `stg_payments` upstream errored before it could run. There is nothing to fix here. It will build on its own once the root cause is resolved.",
+  "fct_payments": "Casualty. Skipped as collateral from the `stg_payments` failure upstream. Do not debug this model; fix `stg_payments` and this comes back green.",
+  "fct_revenue_daily": "Casualty at the end of the payments branch. Skipped because its ancestor `stg_payments` failed. It is the visible symptom (revenue didn't refresh) but not the cause.",
+  "dim_products": "Second, independent root cause. The model itself built fine, but its `not_null` test on `product_id` failed with 7 null rows. In `dbt build` a failing test gates everything downstream, so this is a real blocker even though the model shows success. Open the test in the drawer and copy the compiled query to pull the 7 offending rows, then trace where a null `product_id` enters the products join."
+}
