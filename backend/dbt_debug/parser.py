@@ -1,7 +1,15 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Optional
+
+
+def _normalize_sql(sql: Optional[str]) -> Optional[str]:
+    if not sql or not sql.strip():
+        return sql
+    collapsed = re.sub(r"(\n[ \t]*){2,}", "\n", sql.strip())
+    return collapsed.rstrip().rstrip(";").rstrip() + ";"
 
 
 @dataclass
@@ -132,7 +140,7 @@ def parse_manifest(manifest: dict) -> tuple[dict[str, ParsedModel], dict[str, Pa
             column_name=node.get("column_name"),
             attached_model_unique_id=attached,
             depends_on=gated_models,
-            compiled_sql=node.get("compiled_code") or node.get("compiled_sql"),
+            compiled_sql=_normalize_sql(node.get("compiled_code") or node.get("compiled_sql")),
         )
 
     return models, tests
