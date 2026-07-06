@@ -21,3 +21,6 @@ backend/data/
 # Tooling artifacts
 .lavish/
 build/
+
+# Generated lineage maps (the demo site lives in docs/, which is committed)
+dbt-debug-lineage.html

@@ -6,23 +6,12 @@ import sys
 import webbrowser
 from pathlib import Path
 
-from .artifact_sources import DirectFilesSource, LocalTargetSource, resolve_source
+from .artifact_sources import DirectFilesSource, resolve_source
 from .engine import analyze
 from .render import render_html
 
-_FIXTURES = Path(__file__).resolve().parents[2] / "fixtures"
-_BUNDLED_EXAMPLE = _FIXTURES / "jaffle_shop_demo"
-_BUNDLED_TEST_EXAMPLE = _FIXTURES / "jaffle_shop_test"
-_BUNDLED_RUN_EXAMPLE = _FIXTURES / "jaffle_shop_run"
-
 
 def build_source(args: argparse.Namespace):
-    if args.example_test:
-        return LocalTargetSource(_BUNDLED_TEST_EXAMPLE)
-    if args.example_run:
-        return LocalTargetSource(_BUNDLED_RUN_EXAMPLE)
-    if args.example:
-        return LocalTargetSource(_BUNDLED_EXAMPLE)
     if args.manifest and args.run_results:
         return DirectFilesSource(args.manifest, args.run_results, args.sources)
     return resolve_source(target=args.target)
@@ -61,9 +50,6 @@ def main(argv=None) -> int:
     p.add_argument("--manifest", help="path to manifest.json")
     p.add_argument("--run-results", dest="run_results", help="path to run_results.json")
     p.add_argument("--sources", help="path to sources.json (freshness), optional")
-    p.add_argument("--example", action="store_true", help="bundled build example (stg_payments cascade)")
-    p.add_argument("--example-test", dest="example_test", action="store_true", help="bundled dbt test example (failing tests)")
-    p.add_argument("--example-run", dest="example_run", action="store_true", help="bundled dbt run example (stg_orders failure cascade)")
     p.add_argument("--analysis", help="path to a JSON map of node id/name -> Claude's explanation (or '-' to read it from stdin), shown inline")
     p.add_argument("--json", action="store_true", help="print the failure graph as JSON to stdout instead of rendering HTML")
     p.add_argument("--out", help="output HTML path (default: ./dbt-debug-lineage.html)")

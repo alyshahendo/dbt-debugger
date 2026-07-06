@@ -41,4 +41,4 @@ mkdir -p "$dest"
 cp "$REPO/.claude/skills/dbt-debugger/SKILL.md" "$dest/SKILL.md"
 echo "  ✓ skill installed to $dest"
 echo
-echo "Done. Try 'dbt-debug --example', or ask Claude to debug a failed dbt run."
+echo "Done. Point dbt-debug at a target/ dir, or ask Claude to debug a failed dbt run."

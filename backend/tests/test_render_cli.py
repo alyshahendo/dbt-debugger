@@ -9,7 +9,22 @@ from dbt_debug.cli import main
 from dbt_debug.engine import analyze_target
 from dbt_debug.render import render_html
 
-DEMO = Path(__file__).resolve().parents[2] / "fixtures" / "jaffle_shop_demo"
+_FIXTURES = Path(__file__).resolve().parents[2] / "fixtures"
+DEMO = _FIXTURES / "jaffle_shop_demo"
+RUN = _FIXTURES / "jaffle_shop_run"
+TEST = _FIXTURES / "jaffle_shop_test"
+
+
+def _source_args(fixture: Path) -> list[str]:
+    """CLI args pointing at a fixture dir's artifacts (sources.json if present)."""
+    args = [
+        "--manifest", str(fixture / "manifest.json"),
+        "--run-results", str(fixture / "run_results.json"),
+    ]
+    sources = fixture / "sources.json"
+    if sources.is_file():
+        args += ["--sources", str(sources)]
+    return args
 
 
 def _embedded_graph(html: str) -> dict:
@@ -54,17 +69,17 @@ def test_source_columns_reach_embedded_json():
     assert any(c["name"] == "payment_id" for c in payments["columns"])
 
 
-def test_cli_example_writes_html(tmp_path):
+def test_cli_writes_html(tmp_path):
     out = tmp_path / "lineage.html"
-    code = main(["--example", "--out", str(out), "--no-open"])
+    code = main(_source_args(DEMO) + ["--out", str(out), "--no-open"])
     assert code == 0
     assert out.is_file()
     assert "dbt-debug · Lineage" in out.read_text()
 
 
-def test_cli_test_example_is_a_test_run(tmp_path):
+def test_cli_test_fixture_is_a_test_run(tmp_path):
     out = tmp_path / "test-lineage.html"
-    code = main(["--example-test", "--out", str(out), "--no-open"])
+    code = main(_source_args(TEST) + ["--out", str(out), "--no-open"])
     assert code == 0
     graph = _embedded_graph(out.read_text())
     assert graph["command"] == "test"
@@ -75,7 +90,7 @@ def test_analysis_is_embedded_by_node_name(tmp_path):
     ann = tmp_path / "analysis.json"
     ann.write_text(json.dumps({"stg_payments": "root-cause explanation from Claude"}))
     out = tmp_path / "analyzed.html"
-    code = main(["--example", "--analysis", str(ann), "--out", str(out), "--no-open"])
+    code = main(_source_args(DEMO) + ["--analysis", str(ann), "--out", str(out), "--no-open"])
     assert code == 0
     graph = _embedded_graph(out.read_text())
     node = next(n for n in graph["nodes"] if n["name"] == "stg_payments")
@@ -89,16 +104,16 @@ def test_analysis_can_be_read_from_stdin(tmp_path, monkeypatch):
         "sys.stdin", io.StringIO(json.dumps({"stg_payments": "piped in via stdin"}))
     )
     out = tmp_path / "analyzed-stdin.html"
-    code = main(["--example", "--analysis", "-", "--out", str(out), "--no-open"])
+    code = main(_source_args(DEMO) + ["--analysis", "-", "--out", str(out), "--no-open"])
     assert code == 0
     graph = _embedded_graph(out.read_text())
     node = next(n for n in graph["nodes"] if n["name"] == "stg_payments")
     assert node["analysis"] == "piped in via stdin"
 
 
-def test_cli_run_example_is_a_run_failure(tmp_path):
+def test_cli_run_fixture_is_a_run_failure(tmp_path):
     out = tmp_path / "run-lineage.html"
-    code = main(["--example-run", "--out", str(out), "--no-open"])
+    code = main(_source_args(RUN) + ["--out", str(out), "--no-open"])
     assert code == 0
     graph = _embedded_graph(out.read_text())
     assert graph["command"] == "run"
