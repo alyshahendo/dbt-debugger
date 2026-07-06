@@ -131,8 +131,8 @@ function FailureBody({ model, node }: { model: Model; node: GraphNode }) {
           </div>
         </div>
       ) : node.failure_class === 'casualty' ? (
-        <div class="block block-cas">
-          <div class="block-lbl" style="color:#f0a24e">Casualty</div>
+        <div class="block block-skip">
+          <div class="block-lbl" style="color:#e8b34a">Casualty</div>
           <div style="font-size:11px;color:#c3c6cd">
             Skipped because <span class="mono">{model.byId[node.blamed_root_cause || '']?.name || node.blamed_root_cause}</span> upstream failed.
           </div>

@@ -282,6 +282,16 @@ main {
   color: #f0a24e;
 }
 
+.n-skip {
+  background: linear-gradient(rgba(232, 179, 74, 0.13), rgba(232, 179, 74, 0.13)), #0b0c0f;
+  border: 1px dashed rgba(232, 179, 74, 0.7);
+  color: #f0d79a;
+}
+
+.n-skip .ico {
+  color: #e8b34a;
+}
+
 .n-src {
   background: linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)), #0b0c0f;
   border: 1px solid rgba(255, 255, 255, 0.17);
@@ -361,6 +371,11 @@ main {
 .block-cas {
   background: rgba(232, 146, 58, 0.10);
   border: 1px solid rgba(232, 146, 58, 0.35);
+}
+
+.block-skip {
+  background: rgba(232, 179, 74, 0.10);
+  border: 1px solid rgba(232, 179, 74, 0.35);
 }
 
 .block-root {
@@ -483,6 +498,16 @@ pre {
 .b-warn {
   background: rgba(232, 179, 74, 0.2);
   color: #e8b34a;
+}
+
+.b-skip {
+  background: rgba(232, 179, 74, 0.2);
+  color: #e8b34a;
+}
+
+.b-sus {
+  background: rgba(240, 162, 78, 0.2);
+  color: #f0a24e;
 }
 
 .b-pass {
