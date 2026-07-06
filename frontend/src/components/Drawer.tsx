@@ -46,11 +46,14 @@ function Columns({ node }: { node: GraphNode }) {
 function SourceBody({ node }: { node: GraphNode }) {
   const fresh = node.freshness_status;
   const isStale = fresh === 'warn' || fresh === 'error';
-  const known = fresh === 'pass' || isStale;
+  const isFresh = fresh === 'pass';
+  const known = isFresh || isStale;
+  const blockClass = isStale ? 'block-cas' : isFresh ? 'block-ok' : 'block-neutral';
+  const lblColor = isStale ? '#e8b34a' : isFresh ? '#3ecf8e' : '#9aa0ab';
   return (
     <>
-      <div class={`block ${isStale ? 'block-cas' : 'block-neutral'}`}>
-        <div class="block-lbl" style={{ color: isStale ? '#e8b34a' : '#9aa0ab' }}>Freshness</div>
+      <div class={`block ${blockClass}`}>
+        <div class="block-lbl" style={{ color: lblColor }}>Freshness</div>
         <div style="font-size:11px;color:#c3c6cd">
           {known
             ? `${fresh} · loaded ~${Math.round((node.freshness_age_seconds || 0) / 3600)}h ago`
