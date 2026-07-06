@@ -62,13 +62,14 @@ export function deriveModel(graph: Graph): Model {
   Object.values(lanes).forEach(arr =>
     arr.sort((a, b) =>
       a.resource_type < b.resource_type ? -1 : a.resource_type > b.resource_type ? 1 : a.name.localeCompare(b.name)));
+  const occupied = Object.keys(lanes).map(Number).sort((a, b) => a - b);
+  const colOf: Record<number, number> = {};
+  occupied.forEach((l, i) => (colOf[l] = i));
+
   let maxRows = 0;
-  let maxLane = 0;
-  Object.keys(lanes).forEach(l => {
-    const li = +l;
-    lanes[li].forEach((n, i) => (pos[n.id] = { x: LANE_X(li), y: TOP + i * ROW }));
+  occupied.forEach(li => {
+    lanes[li].forEach((n, i) => (pos[n.id] = { x: LANE_X(colOf[li]), y: TOP + i * ROW }));
     maxRows = Math.max(maxRows, lanes[li].length);
-    maxLane = Math.max(maxLane, li);
   });
 
   return {
@@ -80,7 +81,7 @@ export function deriveModel(graph: Graph): Model {
     blastOf,
     cascade,
     pos,
-    width: LANE_X(maxLane) + NODE_W + 40,
+    width: LANE_X(Math.max(0, occupied.length - 1)) + NODE_W + 40,
     height: TOP + maxRows * ROW + 30,
   };
 }
