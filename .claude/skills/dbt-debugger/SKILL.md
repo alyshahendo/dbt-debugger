@@ -35,11 +35,15 @@ user or look for `target/manifest.json` + `target/run_results.json`.
 ## Step 1: inspect the failure graph
 
 ```bash
-dbt-debug --target ./target --json > /tmp/dbt-graph.json
+dbt-debug --target ./target --json > dbt-debug-graph.json
 ```
 
+Write intermediate files in the working directory, not `/tmp`: the Write tool
+is sandboxed to the working directory, so a `/tmp/...` path fails with "Error
+writing file". Step 3 removes them, leaving only the HTML.
+
 (Or `--manifest <m.json> --run-results <rr.json> [--sources <s.json>]`.) Read
-`/tmp/dbt-graph.json` and find the root causes, the nodes with
+`dbt-debug-graph.json` and find the root causes, the nodes with
 `failure_class == "root_cause"`. For each, note its `name`, `path`, `status`,
 `message`, and how many nodes list it as their `blamed_root_cause` (the blast
 radius). Also note the failing tests (a model's `tests[]` with status
@@ -59,16 +63,20 @@ an analysis map keyed by model name:
 }
 ```
 
-Save it to `/tmp/dbt-analysis.json`.
+Save it to `dbt-debug-analysis.json` in the working directory (see the note in
+Step 1: do not use `/tmp`).
 
 ## Step 3: render with your analysis embedded
 
 ```bash
-dbt-debug --target ./target --analysis /tmp/dbt-analysis.json --out dbt-debug-lineage.html
+dbt-debug --target ./target --analysis dbt-debug-analysis.json --out dbt-debug-lineage.html
+rm -f dbt-debug-graph.json dbt-debug-analysis.json
 ```
 
-Each analyzed node's drawer now shows a **"✦ Claude's analysis"** block inline, so
-the user reads the diagnosis right in the map.
+The self-contained `dbt-debug-lineage.html` is the only artifact to keep; the
+`rm` clears the two intermediates. Each analyzed node's drawer now shows a
+**"✦ Claude's analysis"** block inline, so the user reads the diagnosis right in
+the map.
 
 Then, in the terminal, also:
 - Name each root cause and its blast radius.
