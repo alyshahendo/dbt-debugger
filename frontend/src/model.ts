@@ -19,6 +19,33 @@ export interface Model {
   height: number;
 }
 
+function layoutNodes(nodes: GraphNode[]): {
+  pos: Record<string, { x: number; y: number }>;
+  width: number;
+  height: number;
+} {
+  const pos: Record<string, { x: number; y: number }> = {};
+  const lanes: Record<number, GraphNode[]> = {};
+  nodes.forEach(n => (lanes[n.lane] ||= []).push(n));
+  Object.values(lanes).forEach(arr =>
+    arr.sort((a, b) =>
+      a.resource_type < b.resource_type ? -1 : a.resource_type > b.resource_type ? 1 : a.name.localeCompare(b.name)));
+  const occupied = Object.keys(lanes).map(Number).sort((a, b) => a - b);
+  const colOf: Record<number, number> = {};
+  occupied.forEach((l, i) => (colOf[l] = i));
+
+  let maxRows = 0;
+  occupied.forEach(li => {
+    lanes[li].forEach((n, i) => (pos[n.id] = { x: LANE_X(colOf[li]), y: TOP + i * ROW }));
+    maxRows = Math.max(maxRows, lanes[li].length);
+  });
+  return {
+    pos,
+    width: LANE_X(Math.max(0, occupied.length - 1)) + NODE_W + 40,
+    height: TOP + maxRows * ROW + 30,
+  };
+}
+
 export function deriveModel(graph: Graph): Model {
   const isTestRun = graph.command === 'test';
 
@@ -59,21 +86,7 @@ export function deriveModel(graph: Graph): Model {
   // downstream walk misses them. Add them so they stay on the failure path.
   if (!isTestRun) graph.nodes.forEach(n => n.failure_class === 'suspect' && cascade.add(n.id));
 
-  const pos: Record<string, { x: number; y: number }> = {};
-  const lanes: Record<number, GraphNode[]> = {};
-  graph.nodes.forEach(n => (lanes[n.lane] ||= []).push(n));
-  Object.values(lanes).forEach(arr =>
-    arr.sort((a, b) =>
-      a.resource_type < b.resource_type ? -1 : a.resource_type > b.resource_type ? 1 : a.name.localeCompare(b.name)));
-  const occupied = Object.keys(lanes).map(Number).sort((a, b) => a - b);
-  const colOf: Record<number, number> = {};
-  occupied.forEach((l, i) => (colOf[l] = i));
-
-  let maxRows = 0;
-  occupied.forEach(li => {
-    lanes[li].forEach((n, i) => (pos[n.id] = { x: LANE_X(colOf[li]), y: TOP + i * ROW }));
-    maxRows = Math.max(maxRows, lanes[li].length);
-  });
+  const { pos, width, height } = layoutNodes(graph.nodes);
 
   return {
     graph,
@@ -84,9 +97,17 @@ export function deriveModel(graph: Graph): Model {
     blastOf,
     cascade,
     pos,
-    width: LANE_X(Math.max(0, occupied.length - 1)) + NODE_W + 40,
-    height: TOP + maxRows * ROW + 30,
+    width,
+    height,
   };
+}
+
+// Re-pack only the visible nodes into dense lanes, so "Failure paths only"
+// doesn't leave the failure scattered across the full-DAG layout with big gaps.
+export function withPathLayout(m: Model, hidden: Set<string>): Model {
+  const visible = m.graph.nodes.filter(n => !hidden.has(n.id));
+  const { pos, width, height } = layoutNodes(visible);
+  return { ...m, pos, width, height };
 }
 
 export const blast = (m: Model, id: string) => m.blastOf[id] || 0;

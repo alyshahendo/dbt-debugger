@@ -57,6 +57,7 @@ function Node({
 }) {
   const st = STATUS[nodeState(node, model.isTestRun)];
   const p = model.pos[node.id];
+  if (!p) return null;
   return (
     <div
       class={`node ${st.node}${selected ? ' sel' : ''}`}
