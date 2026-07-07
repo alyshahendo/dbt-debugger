@@ -14,7 +14,7 @@
     --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box}
-  html,body{margin:0}
+  html,body{margin:0;overflow-x:hidden;max-width:100%}
   body{background:var(--bg);color:var(--body);font-family:var(--sans);line-height:1.55;
     -webkit-font-smoothing:antialiased;background:
       radial-gradient(900px 500px at 82% -8%, rgba(242,85,90,.10), transparent 60%),
@@ -34,7 +34,7 @@
   .hero{padding:56px 0 34px}
   .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
   h1{font-size:clamp(34px,5.4vw,58px);line-height:1.03;letter-spacing:-.03em;color:var(--ink);
-    margin:16px 0 0;font-weight:700}
+    margin:16px 0 0;font-weight:700;overflow-wrap:break-word}
   h1 em{font-style:normal;color:var(--red)}
   .sub{font-size:clamp(16px,2.1vw,20px);color:var(--mute);max-width:620px;margin:20px 0 0}
   .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
@@ -55,11 +55,13 @@
     box-shadow:0 24px 60px rgba(0,0,0,.45)}
   .frame .bar{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--line);
     background:var(--panel2)}
-  .frame .bar .tl{width:10px;height:10px;border-radius:50%;background:#2a2e37}
-  .frame .bar .label{margin-left:8px;font-family:var(--mono);font-size:12px;color:var(--faint)}
-  .frame .bar .open{margin-left:auto;font-size:12.5px;color:var(--mute);text-decoration:none}
+  .frame .bar .tl{flex:none;width:10px;height:10px;border-radius:50%;background:#2a2e37}
+  .frame .bar .label{margin-left:8px;font-family:var(--mono);font-size:12px;color:var(--faint);
+    min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .frame .bar .open{flex:none;margin-left:auto;font-size:12.5px;color:var(--mute);text-decoration:none}
   .frame .bar .open:hover{color:var(--ink)}
   iframe{display:block;width:100%;height:560px;border:0;background:var(--bg)}
+  .frame-cta{display:none}
 
   .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
@@ -69,6 +71,7 @@
   .card.red .k{color:var(--red)} .card.orange .k{color:#f0a24e} .card.amber .k{color:var(--amber)} .card.green .k{color:var(--green)}
 
   .split{display:grid;grid-template-columns:1.1fr .9fr;gap:26px;align-items:center}
+  .split>*{min-width:0}
   h2{font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;color:var(--ink);margin:0 0 14px;font-weight:680}
   .lead{color:var(--mute);font-size:16px}
   ul.plain{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:12px}
@@ -93,7 +96,21 @@
     display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
   footer a{color:var(--mute);text-decoration:none} footer a:hover{color:var(--ink)}
 
-  @media(max-width:760px){.cards{grid-template-columns:1fr}.split{grid-template-columns:1fr}iframe{height:460px}}
+  .fc-title{color:var(--ink);font-weight:600;font-size:16px}
+  .fc-sub{color:var(--mute);font-size:13px}
+
+  @media(max-width:760px){
+    .wrap{padding:0 18px}
+    .cards{grid-template-columns:1fr}
+    .split{grid-template-columns:1fr}
+    .hero{padding:36px 0 26px}
+    .legend{gap:12px 18px}
+    .cta{flex-direction:column;align-items:stretch}
+    .btn{justify-content:center}
+    iframe{display:none}
+    .frame-cta{display:flex;flex-direction:column;gap:6px;padding:22px 20px;text-decoration:none}
+    .frame-cta:active{background:var(--panel2)}
+  }
 </style>
 </head>
 <body>
@@ -112,9 +129,9 @@
       <a class="btn ghost" href="https://github.com/alyshahendo/dbt-debugger">Install the skill</a>
     </div>
     <div class="legend">
-      <span class="chip"><span class="sq" style="background:var(--red)"></span><b>Root cause</b> — actually failed</span>
-      <span class="chip"><span class="sq" style="background:#f0a24e"></span><b>Suspect</b> — inlined ephemeral, may hide the bug</span>
-      <span class="chip"><span class="sq" style="background:var(--amber)"></span><b>Casualty</b> — only skipped downstream</span>
+      <span class="chip"><span class="sq" style="background:var(--red)"></span><b>Root cause</b> · actually failed</span>
+      <span class="chip"><span class="sq" style="background:#f0a24e"></span><b>Suspect</b> · inlined ephemeral, may hide the bug</span>
+      <span class="chip"><span class="sq" style="background:var(--amber)"></span><b>Casualty</b> · only skipped downstream</span>
     </div>
   </section>
 
@@ -122,10 +139,14 @@
     <div class="frame">
       <div class="bar">
         <span class="tl"></span><span class="tl"></span><span class="tl"></span>
-        <span class="label">dbt-debug · jaffle_shop — 2 root causes, 4 skipped</span>
+        <span class="label">dbt-debug · jaffle_shop · 2 root causes, 4 skipped</span>
         <a class="open" href="demo.html" target="_blank" rel="noopener">open full screen ↗</a>
       </div>
       <iframe src="demo.html" title="dbt-debugger interactive lineage map" loading="lazy"></iframe>
+      <a class="frame-cta" href="demo.html">
+        <span class="fc-title">Open the interactive map →</span>
+        <span class="fc-sub">A real failed build, best explored full screen on your phone.</span>
+      </a>
     </div>
   </section>
 
